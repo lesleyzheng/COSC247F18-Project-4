@@ -34,8 +34,17 @@ def friends_top_lat(id, train_set, graph):
         else:
             location_dict[lat] = 1
 
-    max_loc = max(location_dict.keys(), key=(lambda k: location_dict[k]))
     #in the event of a tie it picks the first max encountered MUST FIX
+    #max_loc = max(location_dict.keys(), key=(lambda k: location_dict[k]))
+
+    max_value = max(location_dict.values())
+
+    max_keys = [k for k,v in location_dict.items() if v == max_value]
+    if len(max_keys) == 1:
+        return max_keys[0]
+
+    #but else do what??
+
     return max_loc
 
 
