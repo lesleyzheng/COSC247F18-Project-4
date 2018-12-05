@@ -1,8 +1,10 @@
 import pickle
+from multiprocessing import Pool
+def process(id, train_info, friends):
+    temp_list = []
 
-def process():
-    length = len(train)
-    train_set = [[None]] * length
+    for num in train_info:
+        temp_list.append(num)
 
 
 
@@ -20,3 +22,14 @@ if __name__ == "__main__":
     print(len(train))
 
     #number of friends, mod of location, mod of hour, "most similar location based on hour",
+    l = []
+    for key,value in train:
+        l.append((key, value, graph[key]))
+
+    p = Pool(processes=4)
+    processed = p.starmap(process, l)
+    pickle_desc = "array of extrated features for every point in the training set"
+    pickle_out = open('./data/processed_train.pkl', 'wb')
+    pickle.dump((processed, pickle_desc), pickle_out)
+    pickle_out.close()
+    p.close()
