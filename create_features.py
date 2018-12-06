@@ -1,6 +1,7 @@
 import pickle
 from multiprocessing import Pool
 from random import randint
+import numpy as np
 def process(train_set, graph):
     master_list = []
 
@@ -16,45 +17,34 @@ def process(train_set, graph):
         num_friends = len(graph[key])
         temp_list.append(num_friends)
 
-        #most common latitude among friends - not working yet
-        friends_lat = friends_top_lat(key, train_set, graph)
+        #most common latitude among friends using median (can return -1)
+        friends_lat = friends_median_lat(key, train_set, graph)
         temp_list.append(friends_lat)
 
-        #most common latitude among friends based on similarity from their top hours
+        #most common latitude among friends based on similarity from their top hours (can return -1)
         lat_from_hour = top_lat_hour(key, train_set, graph)
         temp_list.append(lat_from_hour)
 
 
 
-def friends_top_lat(id, train_set, graph):
+def friends_median_lat(id, train_set, graph):
     friends = graph[id]
     #no friends return -1
     if len(friends) == 0:
         return -1
-    your_data = train_set[id]
-    location_dict= dict()
+
+    location_array = []
 
     for f in friends:
+        #checking if in training set
+        if f not in train_set:
+            continue
         their_data = train_set[f]
         lat = their_data[3]
-        if lat in location_dict:
-            location_dict[lat] = location_dict[lat] + 1
-        else:
-            location_dict[lat] = 1
+        location_array.append(lat)
 
-    #in the event of a tie it picks the first max encountered MUST FIX
-    #max_loc = max(location_dict.keys(), key=(lambda k: location_dict[k]))
-
-    max_value = max(location_dict.values())
-    print("max based on top location (value and then location")
-    print(max_value)
-
-    max_keys = [k for k,v in location_dict.items() if v == max_value]
-    print(max_keys)
-    if len(max_keys) == 1:
-        return max_keys[0]
-    else:
-        return max_keys
+    location_array = np.array(location_array)
+    return np.median(location_array)
 
 def top_lat_hour(id, train_set, graph):
     #return location with closest hour1, then hour2, then hour3
