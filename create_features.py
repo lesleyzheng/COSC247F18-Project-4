@@ -25,6 +25,9 @@ def process(train_set, graph):
         lat_from_hour = top_lat_hour(key, train_set, graph)
         temp_list.append(lat_from_hour)
 
+        master_list.append(temp_list)
+    return master_list
+
 
 
 def friends_median_lat(id, train_set, graph):
@@ -39,12 +42,13 @@ def friends_median_lat(id, train_set, graph):
         #checking if in training set
         if f not in train_set:
             continue
+        print(train_set[f])
         their_data = train_set[f]
         lat = their_data[3]
         location_array.append(lat)
 
     location_array = np.array(location_array)
-    return np.median(location_array)
+    return round(np.median(location_array), 3)
 
 def top_lat_hour(id, train_set, graph):
     #return location with closest hour1, then hour2, then hour3
@@ -89,7 +93,25 @@ def top_lat_hour(id, train_set, graph):
     key = key_hour[index]
     return train_set[key][3]
 
+def friends_median_hour1(id, train_set, graph):
+    friends = graph[id]
+    # no friends return -1
+    if len(friends) == 0:
+        return -1
 
+    hour_array = []
+
+    for f in friends:
+
+        # checking if in training set
+        if f not in train_set:
+            continue
+        their_data = train_set[f]
+        hour = their_data[0]
+        hour_array.append(hour)
+
+    hour_array = np.array(hour_array)
+    return round(np.median(hour_array), 3)
 
 
 
@@ -107,7 +129,7 @@ if __name__ == "__main__":
     print(len(graph))
     print(len(train))
 
-    print(top_lat_hour(7829, train, graph))
+    print(friends_median_lat(3, train, graph))
 
 
 
