@@ -2,10 +2,12 @@ import pickle
 from multiprocessing import Pool
 from random import randint
 import numpy as np
+import statistics
+
 def process(train_set, graph):
     master_list = []
 
-    for key,value in train_set:
+    for key,value in train_set.items():
         temp_list = []
         #Hour1, Hour2, Hour3, Lat, Lon, Posts
         #not including latitude and longitude
@@ -14,8 +16,11 @@ def process(train_set, graph):
             temp_list.append(value[num])
 
         #number of friends
-        num_friends = len(graph[key])
-        temp_list.append(num_friends)
+        if key not in graph:
+            temp_list.append(0)
+        else:
+            num_friends = len(graph[key])
+            temp_list.append(num_friends)
 
         #most common latitude among friends using median (can return -1)
         friends_lat = friends_median_lat(key, train_set, graph)
@@ -25,12 +30,26 @@ def process(train_set, graph):
         lat_from_hour = top_lat_hour(key, train_set, graph)
         temp_list.append(lat_from_hour)
 
+        #median hour1 among friends
+        median_hour1 = friends_median_hour1(key, train_set, graph)
+        temp_list.append(median_hour1)
+
+        # median hour2 among friends
+        median_hour2 = friends_median_hour2(key, train_set, graph)
+        temp_list.append(median_hour2)
+
+        # median hour1 among friends
+        median_hour3 = friends_median_hour3(key, train_set, graph)
+        temp_list.append(median_hour3)
+
         master_list.append(temp_list)
     return master_list
 
 
 
 def friends_median_lat(id, train_set, graph):
+    if id not in graph:
+        return -1
     friends = graph[id]
     #no friends return -1
     if len(friends) == 0:
@@ -47,11 +66,13 @@ def friends_median_lat(id, train_set, graph):
         lat = their_data[3]
         location_array.append(lat)
 
-    location_array = np.array(location_array)
-    return round(np.median(location_array), 3)
+
+    return round(statistics.median(location_array), 3)
 
 def top_lat_hour(id, train_set, graph):
     #return location with closest hour1, then hour2, then hour3
+    if id not in graph:
+        return -1
     friends = graph[id]
     # no friends return -1
     if len(friends) == 0:
@@ -68,13 +89,11 @@ def top_lat_hour(id, train_set, graph):
             if f not in train_set:
                 continue
             their_data = train_set[f]
+            #do not put ids with value 25 into the dictionary
             if their_data[i] != 25 and your_data[i] != 25:
                 print(your_data[i])
                 print(their_data[i])
                 hour_dict[f] = abs(your_data[i] - their_data[i])
-            else:
-                #25 means they cannot be compared
-                hour_dict[f] = 25
 
         print(hour_dict)
         min_hour1_diff = min(hour_dict.values())
@@ -86,14 +105,18 @@ def top_lat_hour(id, train_set, graph):
         if len(key_hour) == 1 and key_hour != 25:
             print("hi")
             return train_set[key_hour[0]][3]
+        else:
+            #now only checking the ids who have the minimum hour1
+            friends = key_hour
 
     #if there is still a tie pick randomly
-
     index = randint(len(key_hour))
     key = key_hour[index]
     return train_set[key][3]
 
 def friends_median_hour1(id, train_set, graph):
+    if id not in graph:
+        return -1
     friends = graph[id]
     # no friends return -1
     if len(friends) == 0:
@@ -110,9 +133,57 @@ def friends_median_hour1(id, train_set, graph):
         hour = their_data[0]
         hour_array.append(hour)
 
-    hour_array = np.array(hour_array)
-    return round(np.median(hour_array), 3)
+    return round(statistics.median(hour_array), 3)
 
+def friends_median_hour2(id, train_set, graph):
+    if id not in graph:
+        return -1
+    friends = graph[id]
+    # no friends return -1
+    if len(friends) == 0:
+        return -1
+
+    hour_array = []
+
+    for f in friends:
+
+        # checking if in training set
+        if f not in train_set:
+            continue
+        their_data = train_set[f]
+        hour = their_data[1]
+        hour_array.append(hour)
+
+    return round(statistics.median(hour_array), 3)
+
+def friends_median_hour3(id, train_set, graph):
+    if id not in graph:
+        return -1
+    friends = graph[id]
+    # no friends return -1
+    if len(friends) == 0:
+        return -1
+
+    hour_array = []
+
+    for f in friends:
+
+        # checking if in training set
+        if f not in train_set:
+            continue
+        their_data = train_set[f]
+        hour = their_data[2]
+        hour_array.append(hour)
+
+    return round(statistics.median(hour_array), 3)
+
+def no_friends(graph, train_set):
+    count = 0
+    for k, v in train_set.items():
+        if k not in graph:
+            print(k)
+            count += 1
+    print(count)
 
 
 
@@ -129,7 +200,9 @@ if __name__ == "__main__":
     print(len(graph))
     print(len(train))
 
-    print(friends_median_lat(3, train, graph))
+    # print(friends_median_hour1(3, train, graph))
+
+    print(friends_median_lat(57363, train, graph))
 
 
 
