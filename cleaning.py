@@ -25,6 +25,7 @@ i.	Could give some indication
 '''
 
 import numpy as np
+import pickle
 
 
 class cleaning(object):
@@ -42,8 +43,6 @@ class cleaning(object):
         self.hour2 = set()
         self.hour3 = set()
 
-        self.invalid_num_posts = set()
-
     def start(self):
 
         f = open("./data/posts_train.txt", "r")
@@ -59,13 +58,14 @@ class cleaning(object):
                 self.all_features(user_info)
                 self.null_islander(user_info)
                 self.invalid_hours(user_info)
-                self.users.apppend(user_info)
+                self.users.append(user_info)
 
         print(f"There are {len(self.unique_ids)} unique IDs.")
         print(f"There are {len(self.users)} number of users.")
         print(f"There are {len(self.null_islanders)} number of null islands.")
         print(f"There are {len(self.hour1)} number of invalid hour1s, {len(self.hour2)} number of invalid hour2s "
               f"and {len(self.hour3)} number of invalid hour3s.")
+        print(f"There are {len(self.miss_features)} people who miss features.")
 
         print(f"Intersections")
         print(len(self.null_islanders.intersection(self.hour1)))
@@ -74,6 +74,19 @@ class cleaning(object):
         print(len(self.hour1.intersection(self.hour3)))
         print(len(self.hour1.intersection(self.hour2).intersection(self.hour3)))
         print(len(self.hour1.intersection(self.hour2).intersection(self.hour3).intersection(self.null_islanders)))
+
+        # self.null_islanders = set()
+        # self.miss_features = set()
+        #
+        # # hours stuff
+        # self.hour1 = set()
+        # self.hour2 = set()
+        # self.hour3 = set()
+
+        pickle_out = open("./data/id_by_group.pkl", 'wb')
+        desc = "list of arrays: null_islanders, hour1, hour2, hour3"
+        pickle.dump(((list(self.null_islanders), list(self.hour1), list(self.hour2), list(self.hour3)), desc), pickle_out)
+        pickle_out.close()
 
     def all_features(self, user_array):
 
@@ -84,21 +97,26 @@ class cleaning(object):
     def null_islander(self, user_array):
 
         # Id,Hour1,Hour2,Hour3,Lat,Lon,Posts
-        if user_array[4] == 0.0 and user_array[5] == 0.0:
+        if float(user_array[4]) == 0.0 and float(user_array[5]) == 0.0:
             self.null_islanders.add(user_array[0])
 
     def invalid_hours(self, user_array):
 
-        if user_array[1] == 25:
+        if int(user_array[1]) == 25:
             self.hour1.add(user_array[0])
-        if user_array[2] == 25:
+        if int(user_array[2]) == 25:
             self.hour2.add(user_array[0])
-        if user_array[3] == 25:
+        if int(user_array[3]) == 25:
             self.hour3.add(user_array[0])
 
         for i in range(1,4):
-            if user_array[i] not in np.arange(1, 26):
+            # print(int(user_array[i]))
+            # print(np.arange(1, 26))
+            # print(int(user_array[i]) not in np.arange(1, 26))
+
+            if int(user_array[i]) not in np.arange(0, 24) and int(user_array[i]) != 25:
                 print(f"{user_array[0]} has an hour out of range")
+                print(int(user_array[i]))
 
 
 if __name__ == "__main__":
