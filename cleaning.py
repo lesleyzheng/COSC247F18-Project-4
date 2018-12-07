@@ -37,6 +37,7 @@ class cleaning(object):
         self.num_users = 0
         self.null_islanders = set()
         self.miss_features = set()
+        self.locations = []
 
         #hours stuff
         self.hour1 = set()
@@ -54,11 +55,13 @@ class cleaning(object):
                 first_line = False
             else:
                 user_info = line.split(",")
-                self.unique_ids.add(user_info[0])
+                self.unique_ids.add(int(user_info[0]))
                 self.all_features(user_info)
                 self.null_islander(user_info)
                 self.invalid_hours(user_info)
                 self.users.append(user_info)
+                self.locations.append(float(user_info[4]))
+                self.locations.append(float(user_info[5]))
 
         print(f"There are {len(self.unique_ids)} unique IDs.")
         print(f"There are {len(self.users)} number of users.")
@@ -83,9 +86,14 @@ class cleaning(object):
         # self.hour2 = set()
         # self.hour3 = set()
 
+        print("standard deviation")
+        print(np.std(self.locations))
+
+        print(np.random.choice(np.array(list(self.unique_ids)), 100))
+
         pickle_out = open("./data/id_by_group.pkl", 'wb')
-        desc = "list of arrays: null_islanders, hour1, hour2, hour3"
-        pickle.dump(((list(self.null_islanders), list(self.hour1), list(self.hour2), list(self.hour3)), desc), pickle_out)
+        desc = "list of arrays: 100 random user ids, null_islanders, hour1, hour2, hour3"
+        pickle.dump(((np.random.choice(np.array(list(self.unique_ids)), 100), list(self.null_islanders), list(self.hour1), list(self.hour2), list(self.hour3)), desc), pickle_out)
         pickle_out.close()
 
     def all_features(self, user_array):
