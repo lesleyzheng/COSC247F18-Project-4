@@ -9,20 +9,20 @@ def process(train_set, graph):
 
     for key,value in train_set.items():
         temp_list = []
-        #Hour1, Hour2, Hour3, Lat, Lon, Posts
-        #not including latitude and longitude
+
+        # Adding hour1, 2, 3, and num of posts
         indeces = [0,1,2,5]
         for num in indeces:
             temp_list.append(value[num])
 
-        #number of friends
+        # Add number of friends
         if key not in graph:
             temp_list.append(0)
         else:
             num_friends = len(graph[key])
             temp_list.append(num_friends)
 
-        #most common latitude among friends using median (can return -1)
+        # TB fixed: finding position with most friends around it
         friends_lat = friends_median_lat(key, train_set, graph)
         temp_list.append(friends_lat)
 
@@ -38,7 +38,7 @@ def process(train_set, graph):
         median_hour2 = friends_median_hour2(key, train_set, graph)
         temp_list.append(median_hour2)
 
-        # median hour1 among friends
+        # median hour3 among friends
         median_hour3 = friends_median_hour3(key, train_set, graph)
         temp_list.append(median_hour3)
 
@@ -67,16 +67,17 @@ def friends_median_lat(id, train_set, graph):
         location_array.append(lat)
 
 
-    return round(statistics.median(location_array), 3)
+    return statistics.median(location_array)
 
 def top_lat_hour(id, train_set, graph):
+
     #return location with closest hour1, then hour2, then hour3
     if id not in graph:
-        return -1
+        return -1, -1
     friends = graph[id]
     # no friends return -1
     if len(friends) == 0:
-        return -1
+        return -1, -1
     your_data = train_set[id]
     key_hour = []
 
@@ -98,13 +99,13 @@ def top_lat_hour(id, train_set, graph):
         print(hour_dict)
         min_hour1_diff = min(hour_dict.values())
         print(min_hour1_diff)
-        key_hour = [k for k,v in hour_dict.items() if v == min_hour1_diff]
+        key_hour = [k for k, v in hour_dict.items() if v == min_hour1_diff]
         print(key_hour)
 
         #return location whose hour1 is closest to the point's hour1 if there is only 1 min value
         if len(key_hour) == 1 and key_hour != 25:
             print("hi")
-            return train_set[key_hour[0]][3]
+            return train_set[key_hour[0]][3], train_set[key_hour[0]][4]
         else:
             #now only checking the ids who have the minimum hour1
             friends = key_hour
@@ -112,7 +113,7 @@ def top_lat_hour(id, train_set, graph):
     #if there is still a tie pick randomly
     index = randint(len(key_hour))
     key = key_hour[index]
-    return train_set[key][3]
+    return train_set[key][3], train_set[key][4]
 
 def friends_median_hour1(id, train_set, graph):
     if id not in graph:
@@ -133,7 +134,7 @@ def friends_median_hour1(id, train_set, graph):
         hour = their_data[0]
         hour_array.append(hour)
 
-    return round(statistics.median(hour_array), 3)
+    return statistics.median(hour_array)
 
 def friends_median_hour2(id, train_set, graph):
     if id not in graph:
@@ -154,7 +155,7 @@ def friends_median_hour2(id, train_set, graph):
         hour = their_data[1]
         hour_array.append(hour)
 
-    return round(statistics.median(hour_array), 3)
+    return statistics.median(hour_array)
 
 def friends_median_hour3(id, train_set, graph):
     if id not in graph:
@@ -175,7 +176,7 @@ def friends_median_hour3(id, train_set, graph):
         hour = their_data[2]
         hour_array.append(hour)
 
-    return round(statistics.median(hour_array), 3)
+    return statistics.median(hour_array)
 
 def no_friends(graph, train_set):
     count = 0
