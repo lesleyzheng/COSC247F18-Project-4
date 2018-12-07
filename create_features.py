@@ -69,28 +69,65 @@ def process(train_set, graph):
         master_list.append(temp_list)
     return master_list
 
+def friends_cluster_location(id, train_set, graph):
 
-def friends_median_lat(id, train_set, graph):
+    # check if user exists in graph and if he/she has friends
     if id not in graph:
-        return -1
+        return -1, -1, 0
     friends = graph[id]
-    #no friends return -1
     if len(friends) == 0:
-        return -1
+        return -1, -1, 0
 
-    location_array = []
+    #note: std of location is 70
+    print(f"proceeding with {len(friends)} friends")
 
+    r = 40
+    friends_pop = dict()
+    max_popularity = 0
     for f in friends:
-        #checking if in training set
+
         if f not in train_set:
             continue
-        print(train_set[f])
-        their_data = train_set[f]
-        lat = their_data[3]
-        location_array.append(lat)
 
+        f_x = train_set[f][3]
+        f_y = train_set[f][4]
 
-    return statistics.median(location_array)
+        # print("start with friend")
+        # print(f_x)
+        # print(f_y)
+        # print()
+
+        temp_count = 0
+        for fr in friends:
+            if fr not in train_set:
+                continue
+            fr_x = train_set[fr][3]
+            fr_y = train_set[fr][4]
+
+            # print((((f_x-fr_x)**2) + ((f_y-fr_y)**2))**(1/2))
+
+            if (((f_x-fr_x)**2) + ((f_y-fr_y)**2))**(1/2) <= r:
+                temp_count += 1
+
+        friends_pop[f] = temp_count
+        if temp_count > max_popularity:
+            max_popularity = temp_count
+
+    print(friends_pop)
+    print(max_popularity)
+    most_popular_friends = [friend for friend, popularity in friends_pop.items() if popularity == max_popularity]
+    print(most_popular_friends)
+    if len(most_popular_friends) == 1:
+        index = most_popular_friends[0]
+        friend_x, friend_y = train_set[index][3], train_set[index][4]
+        return friend_x, friend_y, 1
+    elif len(most_popular_friends) > 1:
+        index = np.random.choice(most_popular_friends, 1)[0]
+        friend_x, friend_y = train_set[index][3], train_set[index][4]
+        return friend_x, friend_y, 1
+    else:
+        print(f"User {id} has no friend clusters")
+        return -1, -1, 0
 
 def loc_from_hours(id, train_set, graph, start):
 
@@ -248,8 +285,19 @@ if __name__ == "__main__":
     print(len(graph))
     print(len(train))
 
+
     print(loc_from_all_hours(2, train, graph))
     print(train[8100])
+
+    # print(friends_median_hour1(3, train, graph))
+
+    group_in = open("./data/id_by_group.pkl", "rb")
+    (rand_ids, null_islanders, hour1, hour2, hour3), desc = pickle.load(group_in)
+
+    for ID in rand_ids:
+        print(f"\nID {ID}")
+        print(friends_cluster_location(ID, train, graph))
+
 
 
 
