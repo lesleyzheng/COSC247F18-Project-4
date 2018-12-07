@@ -25,6 +25,10 @@ def process(train_set, graph):
         lat_from_hour = top_lat_hour(key, train_set, graph)
         temp_list.append(lat_from_hour)
 
+        #median hour1 among friends 
+        median_hour1 = friends_median_hour1(key, train_set, graph)
+        temp_list.append(median_hour1)
+
         master_list.append(temp_list)
     return master_list
 
