@@ -3,6 +3,7 @@ from multiprocessing import Pool
 from random import randint
 import numpy as np
 import statistics
+from math import sqrt
 
 def process(train_set, graph):
     master_list = []
@@ -14,6 +15,12 @@ def process(train_set, graph):
         indeces = [0,1,2,5]
         for num in indeces:
             temp_list.append(value[num])
+            #importance (num of posts does not have an importance)
+            if num != 5:
+                if num == 25:
+                    temp_list.append(0)
+                else:
+                    temp_list.append(1)
 
         # Add number of friends
         if key not in graph:
@@ -23,29 +30,44 @@ def process(train_set, graph):
             temp_list.append(num_friends)
 
         # TB fixed: finding position with most friends around it
-        friends_lat = friends_median_lat(key, train_set, graph)
+        friends_lat, friends_long, importancefc = friends_median_lat(key, train_set, graph)
         temp_list.append(friends_lat)
+        temp_list.append(friends_long)
+        temp_list.append(importancefc)
 
-        #most common latitude among friends based on similarity from their top hours (can return -1)
-        lat_from_hour = top_lat_hour(key, train_set, graph)
-        temp_list.append(lat_from_hour)
+        #most common latitude among friends based on similarity from their top hours (can return -1) starting with hour1
+        lat_from_hour1, long_from_hour1, importance_hour1 = loc_from_hours(key, train_set, graph, 0)
+        temp_list.append(lat_from_hour1)
+        temp_list.append(long_from_hour1)
+        temp_list.append(importance_hour1)
 
-        #median hour1 among friends
-        median_hour1 = friends_median_hour1(key, train_set, graph)
-        temp_list.append(median_hour1)
+        # most common latitude among friends based on similarity from their top hours (can return -1) starting with hour2
+        lat_from_hour2, long_from_hour2, importance_hour2 = loc_from_hours(key, train_set, graph, 1)
+        temp_list.append(lat_from_hour2)
+        temp_list.append(long_from_hour2)
+        temp_list.append(importance_hour2)
 
-        # median hour2 among friends
-        median_hour2 = friends_median_hour2(key, train_set, graph)
-        temp_list.append(median_hour2)
+        # most common latitude among friends based on similarity from their top hours (can return -1) starting with hour3
+        lat_from_hour3, long_from_hour3, importance_hour3 = loc_from_hours(key, train_set, graph, 2)
+        temp_list.append(lat_from_hour3)
+        temp_list.append(long_from_hour3)
+        temp_list.append(importance_hour3)
 
-        # median hour3 among friends
-        median_hour3 = friends_median_hour3(key, train_set, graph)
-        temp_list.append(median_hour3)
+        #location from friends whose number of posts is most similar to their number of posts
+        lat_from_posts, long_from_posts, importance_posts = loc_from_posts(key, train_set, graph)
+        temp_list.append(lat_from_posts)
+        temp_list.append(long_from_posts)
+        temp_list.append(importance_posts)
+
+
+        #location from friends whose hours is most similar to their hours
+        lat_from_all_hours, long_from_all_hours, importance_all_hours = loc_from_all_hours(key, train_set, graph)
+        temp_list.append(lat_from_all_hours)
+        temp_list.append(long_from_all_hours)
+        temp_list.append(importance_all_hours)
 
         master_list.append(temp_list)
     return master_list
-
-
 
 def friends_cluster_location(id, train_set, graph):
 
@@ -107,19 +129,20 @@ def friends_cluster_location(id, train_set, graph):
         print(f"User {id} has no friend clusters")
         return -1, -1, 0
 
-def top_lat_hour(id, train_set, graph):
+def loc_from_hours(id, train_set, graph, start):
 
     #return location with closest hour1, then hour2, then hour3
+    # no friends return -1,-1 for loc and 0 for importance
     if id not in graph:
-        return -1, -1
+        return -1, -1, 0
     friends = graph[id]
-    # no friends return -1
+    # no friends return -1,-1 for loc and 0 for importance
     if len(friends) == 0:
-        return -1, -1
+        return -1, -1, 0
     your_data = train_set[id]
     key_hour = []
 
-    for i in range(3):
+    for i in range(start, 3):
         print(f"AT HOUR {i}")
         # dictionary where id is key and the values are the differences between the points' hours as a list
         hour_dict = dict()
@@ -130,91 +153,107 @@ def top_lat_hour(id, train_set, graph):
             their_data = train_set[f]
             #do not put ids with value 25 into the dictionary
             if their_data[i] != 25 and your_data[i] != 25:
-                print(your_data[i])
-                print(their_data[i])
                 hour_dict[f] = abs(your_data[i] - their_data[i])
-
-        print(hour_dict)
         min_hour1_diff = min(hour_dict.values())
-        print(min_hour1_diff)
         key_hour = [k for k, v in hour_dict.items() if v == min_hour1_diff]
         print(key_hour)
-
         #return location whose hour1 is closest to the point's hour1 if there is only 1 min value
         if len(key_hour) == 1 and key_hour != 25:
-            print("hi")
-            return train_set[key_hour[0]][3], train_set[key_hour[0]][4]
+            return train_set[key_hour[0]][3], train_set[key_hour[0]][4], 1
         else:
             #now only checking the ids who have the minimum hour1
-            friends = key_hour
+            # either you or all your friends have no valid hours
+            if len(key_hour) != 0:
+                friends = key_hour
 
+    #if there are no valid hours
+    if len(key_hour) == 0:
+        return -1,-1,0
     #if there is still a tie pick randomly
     index = randint(len(key_hour))
     key = key_hour[index]
-    return train_set[key][3], train_set[key][4]
+    return train_set[key][3], train_set[key][4], 1
 
-def friends_median_hour1(id, train_set, graph):
+#return location of friend most similar to user based on number of posts
+def loc_from_posts(id, train_set, graph):
     if id not in graph:
-        return -1
-    friends = graph[id]
-    # no friends return -1
-    if len(friends) == 0:
-        return -1
+        return -1,-1, 0
 
-    hour_array = []
+    friends = graph[id]
+    if len(friends) == 0:
+        return -1, -1, 0
+    your_data = train_set[id]
+    posts_dict = dict()
 
     for f in friends:
-
-        # checking if in training set
+        #don't consider points without locations
         if f not in train_set:
             continue
         their_data = train_set[f]
-        hour = their_data[0]
-        hour_array.append(hour)
+        #5 is index of number of posts
+        diff = abs(your_data[5] - their_data[5])
+        posts_dict[f] = diff
 
-    return statistics.median(hour_array)
+    min_diff = min(posts_dict.values())
+    min_keys = [k for k,v in posts_dict.items() if v == min_diff]
 
-def friends_median_hour2(id, train_set, graph):
+    # return location whose num of posts is closest to the point's num of posts if there is only 1 min value
+    if len(min_keys) == 1:
+        key = min_keys[0]
+        return train_set[key][3], train_set[key][4], 1
+    else:
+        #random
+        index = randint(len(min_keys))
+        key = min_keys[index]
+        return train_set[key][3], train_set[key][4], 1
+
+def loc_from_all_hours(id, train_set, graph):
     if id not in graph:
-        return -1
-    friends = graph[id]
-    # no friends return -1
-    if len(friends) == 0:
-        return -1
+        return -1, -1, 0
 
-    hour_array = []
+    friends = graph[id]
+    if len(friends) == 0:
+        return -1, -1, 0
+
+    your_data = train_set[id]
+    hours_dict = dict()
 
     for f in friends:
-
-        # checking if in training set
+        # don't consider points without locations
         if f not in train_set:
             continue
         their_data = train_set[f]
-        hour = their_data[1]
-        hour_array.append(hour)
+        sum = 0
+        #boolean to make sure the sum is not 0 because all the values were 25
+        real_sum = False
+        for i in range(3):
+            if your_data[i] == 25 or their_data[i] == 25:
+                continue
+            diff_sqr = (your_data[i] - their_data[i]) ** 2
+            sum += diff_sqr
+            real_sum = True
+        #if we should consider the sum, then add the difference to the dictionary
+        if real_sum:
+            total_diff_sqrt = sqrt(sum)
+            hours_dict[f] = total_diff_sqrt
+    #no friends with valid hours or you don't have valid hours
+    if len(hours_dict) == 0:
+        return -1,-1, 0
+    print(hours_dict)
+    min_diff = min(hours_dict.values())
+    min_keys = [k for k, v in hours_dict.items() if v == min_diff]
 
-    return statistics.median(hour_array)
+    # return location whose hours are most similar to theirs
+    if len(min_keys) == 1:
+        key = min_keys[0]
+        return train_set[key][3], train_set[key][4], 1
+    else:
+        # random
+        index = randint(len(min_keys))
+        key = min_keys[index]
+        return train_set[key][3], train_set[key][4], 1
 
-def friends_median_hour3(id, train_set, graph):
-    if id not in graph:
-        return -1
-    friends = graph[id]
-    # no friends return -1
-    if len(friends) == 0:
-        return -1
 
-    hour_array = []
-
-    for f in friends:
-
-        # checking if in training set
-        if f not in train_set:
-            continue
-        their_data = train_set[f]
-        hour = their_data[2]
-        hour_array.append(hour)
-
-    return statistics.median(hour_array)
 
 def no_friends(graph, train_set):
     count = 0
@@ -223,6 +262,13 @@ def no_friends(graph, train_set):
             print(k)
             count += 1
     print(count)
+
+def max_friends(graph):
+    max = 0
+    for k,v in graph.items():
+        if len(v) > max:
+            max = len(v)
+    print(max)
 
 
 
@@ -239,6 +285,10 @@ if __name__ == "__main__":
     print(len(graph))
     print(len(train))
 
+
+    print(loc_from_all_hours(2, train, graph))
+    print(train[8100])
+
     # print(friends_median_hour1(3, train, graph))
 
     group_in = open("./data/id_by_group.pkl", "rb")
@@ -247,6 +297,7 @@ if __name__ == "__main__":
     for ID in rand_ids:
         print(f"\nID {ID}")
         print(friends_cluster_location(ID, train, graph))
+
 
 
 
