@@ -1,4 +1,6 @@
 import pickle
+import numpy as np
+
 def create_graph():
     #graph where key is id and value is a list of their friends ids
     master_dict = dict()
@@ -52,6 +54,10 @@ def create_train_dict():
     desc = "a dictionary of the training points with ids as keys and Hour1,Hour2,Hour3,Lat,Lon,Posts as values"
     pickle.dump((master_dict, desc), pickle_out)
     pickle_out.close()
+
+    # master_lat = master_lat.values()
+    # # print(master_lat)
+    # print(np.array(list(master_lat)))
 
     pickle_y_out = open("./data/target_values.pkl", "wb")
     desc = "three dictionaries, with key = user_id, and value = latitude, longittude, [latitude, longtitude] respectively"
