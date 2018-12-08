@@ -69,12 +69,27 @@ if __name__ == '__main__':
     pickle_in2 = open("./data/master_features.pkl", "rb")
     master_features, desc2 = pickle.load(pickle_in2)
 
+    pickle_in3 = open("./data/master_test_features.pkl", "rb")
+    master_test_features, desc3 = pickle.load(pickle_in3)
+
+    master_test_features = np.array(master_test_features)
     master_features = np.array(master_features)
     target_array = get_target_array(master_lat)
 
-
-    test_preds_lat = run_lin_reg(master_features, target_array)
+    test_preds_lat = run_lin_reg(master_features, target_array, master_test_features)
 
     target_array = get_target_array(master_long)
-    test_preds_long = run_lin_reg(master_features, target_array)
+    test_preds_long = run_lin_reg(master_features, target_array, master_test_features)
 
+    pickle_in4 = open("./data/posts_test_dict.pkl", "rb")
+    test_dict, desc4 = pickle.load(pickle_in4)
+
+    new_file = open("./data/submission_linreg.txt", "w")
+
+    counter = 0
+    new_file.write("Id,Lat,Lon")
+    for key in test_dict.keys():
+        string = str(key) + "," + str(test_preds_lat[counter]) + "," + str(test_preds_long[counter]) + "/n"
+        new_file.write(string)
+        counter +=1
+    new_file.close()
