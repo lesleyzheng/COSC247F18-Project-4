@@ -87,9 +87,9 @@ if __name__ == '__main__':
     new_file = open("./data/submission_linreg.txt", "w")
 
     counter = 0
-    new_file.write("Id,Lat,Lon")
+    new_file.write("Id,Lat,Lon\n")
     for key in test_dict.keys():
-        string = str(key) + "," + str(test_preds_lat[counter]) + "," + str(test_preds_long[counter]) + "/n"
+        string = str(key) + "," + str(test_preds_lat[counter]) + "," + str(test_preds_long[counter]) + "\n"
         new_file.write(string)
         counter +=1
     new_file.close()
