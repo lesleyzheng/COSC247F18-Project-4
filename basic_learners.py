@@ -4,12 +4,12 @@ import sklearn
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neighbors import KNeighborsRegressor
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.svm import SVC
 from sklearn.model_selection import GridSearchCV
 
-def run_lin_reg(X_tr, y_tr, X_te, y_te):
+def run_lin_reg(X_tr, y_tr, X_te):
     scaler = MinMaxScaler()
     scaler.fit(X_tr)
     new_X_tr = scaler.transform(X_tr)
@@ -22,13 +22,11 @@ def run_lin_reg(X_tr, y_tr, X_te, y_te):
     print(f"The train loss is {train_loss}")
     new_X_te = scaler.transform(X_te)
     test_preds = learner.predict(new_X_te)
-    test_loss = mean_squared_error(y_te, test_preds)
-    print(f"The test loss is {test_loss}")
     return test_preds
 
 
-def run_KNN(X_tr, y_tr):
-    learner = KNeighborsClassifier(n_neighbors=3)
+def run_KNN(X_tr, y_tr, X_te):
+    learner = KNeighborsRegressor(n_neighbors=3)
     scaler = MinMaxScaler()
     scaler.fit(X_tr)
     new_X_tr = scaler.transform(X_tr)
@@ -36,8 +34,7 @@ def run_KNN(X_tr, y_tr):
     learner.fit(new_X_tr, y_tr)
 
     train_preds = learner.predict(new_X_tr)
-    train_loss = zero_one_loss(y_tr, train_preds)
-    train_loss = round(train_loss, 4)
+    train_loss = mean_squared_error(y_tr, train_preds)
 
     print(f"The train loss is {train_loss}")
 
@@ -76,7 +73,8 @@ if __name__ == '__main__':
     target_array = get_target_array(master_lat)
 
 
+    test_preds_lat = run_lin_reg(master_features, target_array)
 
-
-    run_lin_reg(master_features, target_array)
+    target_array = get_target_array(master_long)
+    test_preds_long = run_lin_reg(master_features, target_array)
 
