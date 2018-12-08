@@ -3,20 +3,28 @@ import pickle
 import sklearn
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import zero_one_loss, precision_score, recall_score, confusion_matrix, f1_score
+from sklearn.metrics import mean_squared_error
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.svm import SVC
 from sklearn.model_selection import GridSearchCV
 
-def run_lin_reg(X_tr, y_tr):
+def run_lin_reg(X_tr, y_tr, X_te, y_te):
+    scaler = MinMaxScaler()
+    scaler.fit(X_tr)
+    new_X_tr = scaler.transform(X_tr)
     learner = LinearRegression()
-    learner.fit(X_tr, y_tr)
-    train_preds = learner.predict(X_tr)
-    train_loss = zero_one_loss(y_tr, train_preds)
-    train_loss = round(train_loss, 4)
+    learner.fit(new_X_tr, y_tr)
+    train_preds = learner.predict(new_X_tr)
+    train_loss = mean_squared_error(y_tr, train_preds)
+    # train_loss = round(train_loss, 4)
 
     print(f"The train loss is {train_loss}")
+    new_X_te = scaler.transform(X_te)
+    test_preds = learner.predict(new_X_te)
+    test_loss = mean_squared_error(y_te, test_preds)
+    print(f"The test loss is {test_loss}")
+    return test_preds
 
 
 def run_KNN(X_tr, y_tr):
@@ -65,10 +73,10 @@ if __name__ == '__main__':
     master_features, desc2 = pickle.load(pickle_in2)
 
     master_features = np.array(master_features)
-
     target_array = get_target_array(master_lat)
-    print(master_features.shape)
-    print(target_array.shape)
+
+
+
 
     run_lin_reg(master_features, target_array)
 
