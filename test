@@ -1,0 +1,5 @@
+import numpy as np
+
+f = open("./data/test_file.txt", "w")
+
+my_list =

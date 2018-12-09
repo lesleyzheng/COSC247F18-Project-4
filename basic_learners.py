@@ -13,16 +13,20 @@ def run_lin_reg(X_tr, y_tr, X_te):
     scaler = MinMaxScaler()
     scaler.fit(X_tr)
     new_X_tr = scaler.transform(X_tr)
+
     learner = LinearRegression()
     learner.fit(new_X_tr, y_tr)
-    train_preds = learner.predict(new_X_tr)
-    train_loss = mean_squared_error(y_tr, train_preds)
-    # train_loss = round(train_loss, 4)
 
-    print(f"The train loss is {train_loss}")
+    # predict on the train
+    train_preds = learner.predict(new_X_tr)
+
+    return train_preds
+
+    # test predict
     new_X_te = scaler.transform(X_te)
     test_preds = learner.predict(new_X_te)
-    return test_preds
+
+    # return test_preds
 
 
 def run_KNN(X_tr, y_tr, X_te):
@@ -61,8 +65,18 @@ def get_target_array(target_dict):
 
     return np.array(target_list)
 
+def total_MSE(pred_x, targ_x, pred_y, targ_y):
+
+    print(len(pred_x), len(targ_x), len(pred_y), len(targ_y))
+    location = pred_x+pred_y
+    pred_location = targ_x+targ_y
+    loss = (mean_squared_error(location, pred_location))**(1/2)
+    print(f"Total MSE {loss}")
+
 
 if __name__ == '__main__':
+
+    #load files
     pickle_in = open("./data/target_values.pkl", "rb")
     (master_lat, master_long, master_loc), desc = pickle.load(pickle_in)
 
@@ -74,12 +88,13 @@ if __name__ == '__main__':
 
     master_test_features = np.array(master_test_features)
     master_features = np.array(master_features)
-    target_array = get_target_array(master_lat)
+    target_lat_array = get_target_array(master_lat)
+    target_long_array = get_target_array(master_long)
 
-    test_preds_lat = run_lin_reg(master_features, target_array, master_test_features)
+    test_preds_lat = run_lin_reg(master_features, target_lat_array, master_test_features)
+    test_preds_long = run_lin_reg(master_features, target_long_array, master_test_features)
 
-    target_array = get_target_array(master_long)
-    test_preds_long = run_lin_reg(master_features, target_array, master_test_features)
+    total_MSE(test_preds_lat, target_lat_array, test_preds_long, target_long_array)
 
     pickle_in4 = open("./data/posts_test_dict.pkl", "rb")
     test_dict, desc4 = pickle.load(pickle_in4)
@@ -89,7 +104,7 @@ if __name__ == '__main__':
     counter = 0
     new_file.write("Id,Lat,Lon")
     for key in test_dict.keys():
-        string = str(key) + "," + str(test_preds_lat[counter]) + "," + str(test_preds_long[counter]) + "/n"
+        string = "\n" + str(key) + "," + str(test_preds_lat[counter]) + "," + str(test_preds_long[counter])
         new_file.write(string)
         counter +=1
     new_file.close()
