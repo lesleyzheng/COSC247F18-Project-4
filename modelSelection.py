@@ -75,7 +75,7 @@ class modelSelection(object):
     def kNN_advanced(self):
 
         #kNN
-        kNN = KNeighborsRegressor(n_neighbors=3, n_jobs=-1)
+        kNN = KNeighborsRegressor(n_neighbors=3, n_jobs= 7)
 
         kNN.fit(self.master_features, self.master_lat)
         lat_predicts = kNN.predict(self.master_features)
