@@ -29,21 +29,21 @@ class modelSelection(object):
         self.initializeValues()
 
         print("norm")
-        x_predicts, y_predicts = self.runGridSearch(False)
-        self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
+        x_predicts, y_predicts = self.kNN_norm(True)
+        # self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
         # print("advanced")
         # x_predicts, y_predicts = self.kNN_advanced()
         # self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
 
-        # new_file = open("./data/submission_knn3_normal.txt", "w")
-        #
-        # counter = 0
-        # new_file.write("Id,Lat,Lon")
-        # for key in self.test_dict.keys():
-        #     string = "\n" + str(key) + "," + str(x_predicts[counter]) + "," + str(y_predicts[counter])
-        #     new_file.write(string)
-        #     counter += 1
-        # new_file.close()
+        new_file = open("./data/submission_knn10_norm.txt", "w")
+
+        counter = 0
+        new_file.write("Id,Lat,Lon")
+        for key in self.test_dict.keys():
+            string = "\n" + str(key) + "," + str(x_predicts[counter]) + "," + str(y_predicts[counter])
+            new_file.write(string)
+            counter += 1
+        new_file.close()
 
     def total_MSE(self, pred_x, targ_x, pred_y, targ_y):
 
@@ -57,7 +57,7 @@ class modelSelection(object):
     def kNN_norm(self, test):
 
         # kNN
-        kNN = KNeighborsRegressor(n_neighbors=5, n_jobs= 7)
+        kNN = KNeighborsRegressor(n_neighbors=10, n_jobs= 2)
 
         kNN.fit(self.master_features, self.master_lat)
         if test:
@@ -109,7 +109,7 @@ class modelSelection(object):
         #SVC
     def SVM(self, test):
 
-        SVM = SVR(kernel = "sigmoid", max_iter = 10000)
+        SVM = SVR(kernel = "rbf", max_iter = 10000)
 
         SVM.fit(self.master_features, self.master_lat)
         if test:
@@ -158,7 +158,7 @@ class modelSelection(object):
 
         #Decision Tree
     def decisionTree(self, test):
-        dTree = DecisionTreeRegressor(max_depth = 10)
+        dTree = DecisionTreeRegressor()
 
         dTree.fit(self.master_features, self.master_lat)
         if test:
