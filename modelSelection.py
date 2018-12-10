@@ -3,9 +3,10 @@ import numpy as np
 
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.neighbors import KNeighborsRegressor
+from sklearn.svm import SVR
 from sklearn.model_selection import GridSearchCV
-import pandas as pd
 from sklearn.metrics import mean_squared_error
+from sklearn.tree import DecisionTreeRegressor
 
 class modelSelection(object):
 
@@ -28,13 +29,13 @@ class modelSelection(object):
         self.initializeValues()
 
         print("norm")
-        x_predicts, y_predicts = self.kNN_norm(False)
+        x_predicts, y_predicts = self.SVM(False)
         self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
         # print("advanced")
         # x_predicts, y_predicts = self.kNN_advanced()
         # self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
 
-        # new_file = open("./data/submission_knn3_normal.txt", "w")
+        # new_file = open("./data/submission_knn10_norm.txt", "w")
         #
         # counter = 0
         # new_file.write("Id,Lat,Lon")
@@ -51,12 +52,12 @@ class modelSelection(object):
 
         loss = (mean_squared_error(location, pred_location)) ** (1 / 2)
 
-        print(f"Total MSE {loss}")
+        print("Total MSE " + str(loss))
 
     def kNN_norm(self, test):
 
         # kNN
-        kNN = KNeighborsRegressor(n_neighbors=3, n_jobs=-1)
+        kNN = KNeighborsRegressor(n_neighbors=10, n_jobs= 2)
 
         kNN.fit(self.master_features, self.master_lat)
         if test:
@@ -75,13 +76,15 @@ class modelSelection(object):
     def kNN_advanced(self):
 
         #kNN
-        kNN = KNeighborsRegressor(n_neighbors=3, n_jobs=-1)
+        kNN = KNeighborsRegressor(n_neighbors=1, n_jobs= 2)
 
         kNN.fit(self.master_features, self.master_lat)
         lat_predicts = kNN.predict(self.master_features)
-
         n, m = self.raw_master_features.shape
+        print(str(n) + " " + str(m))
         new_master_features = np.hstack((self.master_features, lat_predicts.reshape((n, 1))))
+        n1, m1 = new_master_features.shape
+        print(str(n1) + " " + str(m1))
 
         new_scaler = MinMaxScaler()
         new_scaler.fit(new_master_features)
@@ -106,8 +109,73 @@ class modelSelection(object):
         # print(knn_results)
 
         #SVC
+    def SVM(self, test):
+
+        SVM = SVR(kernel = "linear", max_iter = 10000)
+
+        SVM.fit(self.master_features, self.master_lat)
+        if test:
+            lat_predicts = SVM.predict(self.master_test_features)
+        else:
+            lat_predicts = SVM.predict(self.master_features)
+
+        SVM.fit(self.master_features, self.master_long)
+        if test:
+            long_predicts = SVM.predict(self.master_test_features)
+        else:
+            long_predicts = SVM.predict(self.master_features)
+
+        return lat_predicts, long_predicts
+
+    def runGridSearch(self, test):
+
+        params = [{'kernel': ['rbf'], 'gamma': [1.0, 0.1, 0.01, 0.001], 'C': [1, 10, 100, 1000]},
+                  {'kernel': ['poly'], 'degree': [2, 3, 4, 5], 'C': [1, 10, 100, 1000]},
+                  {'kernel': ['sigmoid'], 'coef0': [.1, 1, 10, 100], 'C': [1, 10, 100, 1000]}]
+
+        learner = SVR()
+        gs = GridSearchCV(learner, params, 'neg_mean_squared_error', cv=5, n_jobs = 7)
+        gs.fit(self.master_features, self.master_lat)
+
+        print("The best parameters found were: ")
+        print(gs.best_params_)
+        print(gs.get_params())
+
+        if test:
+            lat_preds = gs.predict(self.master_test_features)
+        else:
+            lat_preds = gs.predict(self.master_features)
+
+        gs.fit(self.master_features, self.master_long)
+        print("the best params for longitude were: ")
+        print(gs.best_params_)
+        print(gs.get_params())
+        if test:
+            long_preds = gs.predict(self.master_test_features)
+        else:
+            long_preds = gs.predict(self.master_features)
+        return lat_preds, long_preds
+
+
 
         #Decision Tree
+    def decisionTree(self, test):
+        dTree = DecisionTreeRegressor()
+
+        dTree.fit(self.master_features, self.master_lat)
+        if test:
+            lat_predicts = dTree.predict(self.master_test_features)
+        else:
+            lat_predicts = dTree.predict(self.master_features)
+
+        dTree.fit(self.master_features, self.master_long)
+        if test:
+            long_predicts = dTree.predict(self.master_test_features)
+        else:
+            long_predicts = dTree.predict(self.master_features)
+
+        return lat_predicts, long_predicts
+
 
     def initializeValues(self):
 

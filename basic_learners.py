@@ -40,7 +40,7 @@ def run_KNN(X_tr, y_tr, X_te):
     train_preds = learner.predict(new_X_tr)
     train_loss = mean_squared_error(y_tr, train_preds)
 
-    print(f"The train loss is {train_loss}")
+    # print(f"The train loss is {train_loss}")
 
 
 def run_grid_search(X_tr, y_tr):
@@ -71,7 +71,7 @@ def total_MSE(pred_x, targ_x, pred_y, targ_y):
     location = pred_x+pred_y
     pred_location = targ_x+targ_y
     loss = (mean_squared_error(location, pred_location))**(1/2)
-    print(f"Total MSE {loss}")
+    # print(f"Total MSE {loss}")
 
 
 if __name__ == '__main__':
