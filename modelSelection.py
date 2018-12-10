@@ -6,6 +6,7 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn.svm import SVR
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import mean_squared_error
+from sklearn.tree import DecisionTreeRegressor
 
 class modelSelection(object):
 
@@ -28,7 +29,7 @@ class modelSelection(object):
         self.initializeValues()
 
         print("norm")
-        x_predicts, y_predicts = self.SVM(False)
+        x_predicts, y_predicts = self.runGridSearch(False)
         self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
         # print("advanced")
         # x_predicts, y_predicts = self.kNN_advanced()
@@ -108,7 +109,7 @@ class modelSelection(object):
         #SVC
     def SVM(self, test):
 
-        SVM = SVR(kernel = "poly", max_iter = 100000)
+        SVM = SVR(kernel = "sigmoid", max_iter = 10000)
 
         SVM.fit(self.master_features, self.master_lat)
         if test:
@@ -136,6 +137,7 @@ class modelSelection(object):
 
         print("The best parameters found were: ")
         print(gs.best_params_)
+        print(gs.get_params())
 
         if test:
             lat_preds = gs.predict(self.master_test_features)
@@ -145,6 +147,7 @@ class modelSelection(object):
         gs.fit(self.master_features, self.master_long)
         print("the best params for longitude were: ")
         print(gs.best_params_)
+        print(gs.get_params())
         if test:
             long_preds = gs.predict(self.master_test_features)
         else:
@@ -154,6 +157,23 @@ class modelSelection(object):
 
 
         #Decision Tree
+    def decisionTree(self, test):
+        dTree = DecisionTreeRegressor(max_depth = 10)
+
+        dTree.fit(self.master_features, self.master_lat)
+        if test:
+            lat_predicts = dTree.predict(self.master_test_features)
+        else:
+            lat_predicts = dTree.predict(self.master_features)
+
+        dTree.fit(self.master_features, self.master_long)
+        if test:
+            long_predicts = dTree.predict(self.master_test_features)
+        else:
+            long_predicts = dTree.predict(self.master_features)
+
+        return lat_predicts, long_predicts
+
 
     def initializeValues(self):
 
