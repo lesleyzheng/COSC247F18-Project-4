@@ -28,7 +28,7 @@ class modelSelection(object):
         self.initializeValues()
 
         print("norm")
-        x_predicts, y_predicts = self.runGridSearch(False)
+        x_predicts, y_predicts = self.SVM(False)
         self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
         # print("advanced")
         # x_predicts, y_predicts = self.kNN_advanced()
@@ -108,7 +108,7 @@ class modelSelection(object):
         #SVC
     def SVM(self, test):
 
-        SVM = SVR(kernel = "linear", max_iter = 100000)
+        SVM = SVR(kernel = "poly", max_iter = 100000)
 
         SVM.fit(self.master_features, self.master_lat)
         if test:
@@ -131,7 +131,7 @@ class modelSelection(object):
                   {'kernel': ['sigmoid'], 'coef0': [.1, 1, 10, 100], 'C': [1, 10, 100, 1000]}]
 
         learner = SVR()
-        gs = GridSearchCV(learner, params, 'f1', cv=5, n_jobs = 7)
+        gs = GridSearchCV(learner, params, 'neg_mean_squared_error', cv=5, n_jobs = 7)
         gs.fit(self.master_features, self.master_lat)
 
         print("The best parameters found were: ")
