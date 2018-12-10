@@ -29,21 +29,21 @@ class modelSelection(object):
         self.initializeValues()
 
         print("norm")
-        x_predicts, y_predicts = self.kNN_norm(True)
-        # self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
+        x_predicts, y_predicts = self.SVM(False)
+        self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
         # print("advanced")
         # x_predicts, y_predicts = self.kNN_advanced()
         # self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
 
-        new_file = open("./data/submission_knn10_norm.txt", "w")
-
-        counter = 0
-        new_file.write("Id,Lat,Lon")
-        for key in self.test_dict.keys():
-            string = "\n" + str(key) + "," + str(x_predicts[counter]) + "," + str(y_predicts[counter])
-            new_file.write(string)
-            counter += 1
-        new_file.close()
+        # new_file = open("./data/submission_knn10_norm.txt", "w")
+        #
+        # counter = 0
+        # new_file.write("Id,Lat,Lon")
+        # for key in self.test_dict.keys():
+        #     string = "\n" + str(key) + "," + str(x_predicts[counter]) + "," + str(y_predicts[counter])
+        #     new_file.write(string)
+        #     counter += 1
+        # new_file.close()
 
     def total_MSE(self, pred_x, targ_x, pred_y, targ_y):
 
@@ -76,13 +76,15 @@ class modelSelection(object):
     def kNN_advanced(self):
 
         #kNN
-        kNN = KNeighborsRegressor(n_neighbors=5, n_jobs= 7)
+        kNN = KNeighborsRegressor(n_neighbors=1, n_jobs= 2)
 
         kNN.fit(self.master_features, self.master_lat)
         lat_predicts = kNN.predict(self.master_features)
-
         n, m = self.raw_master_features.shape
+        print(str(n) + " " + str(m))
         new_master_features = np.hstack((self.master_features, lat_predicts.reshape((n, 1))))
+        n1, m1 = new_master_features.shape
+        print(str(n1) + " " + str(m1))
 
         new_scaler = MinMaxScaler()
         new_scaler.fit(new_master_features)
@@ -109,7 +111,7 @@ class modelSelection(object):
         #SVC
     def SVM(self, test):
 
-        SVM = SVR(kernel = "rbf", max_iter = 10000)
+        SVM = SVR(kernel = "linear", max_iter = 10000)
 
         SVM.fit(self.master_features, self.master_lat)
         if test:
