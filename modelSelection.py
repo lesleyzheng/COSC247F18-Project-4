@@ -51,7 +51,7 @@ class modelSelection(object):
 
         loss = (mean_squared_error(location, pred_location)) ** (1 / 2)
 
-        print(f"Total MSE {loss}")
+        print("Total MSE " + str(loss))
 
     def kNN_norm(self, test):
 
