@@ -3,8 +3,8 @@ import numpy as np
 
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.neighbors import KNeighborsRegressor
+from sklearn.svm import SVR
 from sklearn.model_selection import GridSearchCV
-import pandas as pd
 from sklearn.metrics import mean_squared_error
 
 class modelSelection(object):
@@ -28,21 +28,21 @@ class modelSelection(object):
         self.initializeValues()
 
         print("norm")
-        x_predicts, y_predicts = self.kNN_norm(False)
+        x_predicts, y_predicts = self.runGridSearch(False)
         self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
-        print("advanced")
-        x_predicts, y_predicts = self.kNN_advanced()
-        self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
+        # print("advanced")
+        # x_predicts, y_predicts = self.kNN_advanced()
+        # self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
 
-        new_file = open("./data/submission_knn3_normal.txt", "w")
-
-        counter = 0
-        new_file.write("Id,Lat,Lon")
-        for key in self.test_dict.keys():
-            string = "\n" + str(key) + "," + str(x_predicts[counter]) + "," + str(y_predicts[counter])
-            new_file.write(string)
-            counter += 1
-        new_file.close()
+        # new_file = open("./data/submission_knn3_normal.txt", "w")
+        #
+        # counter = 0
+        # new_file.write("Id,Lat,Lon")
+        # for key in self.test_dict.keys():
+        #     string = "\n" + str(key) + "," + str(x_predicts[counter]) + "," + str(y_predicts[counter])
+        #     new_file.write(string)
+        #     counter += 1
+        # new_file.close()
 
     def total_MSE(self, pred_x, targ_x, pred_y, targ_y):
 
@@ -106,6 +106,52 @@ class modelSelection(object):
         # print(knn_results)
 
         #SVC
+    def SVM(self, test):
+
+        SVM = SVR(kernel = "linear", max_iter = 100000)
+
+        SVM.fit(self.master_features, self.master_lat)
+        if test:
+            lat_predicts = SVM.predict(self.master_test_features)
+        else:
+            lat_predicts = SVM.predict(self.master_features)
+
+        SVM.fit(self.master_features, self.master_long)
+        if test:
+            long_predicts = SVM.predict(self.master_test_features)
+        else:
+            long_predicts = SVM.predict(self.master_features)
+
+        return lat_predicts, long_predicts
+
+    def runGridSearch(self, test):
+
+        params = [{'kernel': ['rbf'], 'gamma': [1.0, 0.1, 0.01, 0.001], 'C': [1, 10, 100, 1000]},
+                  {'kernel': ['poly'], 'degree': [2, 3, 4, 5], 'C': [1, 10, 100, 1000]},
+                  {'kernel': ['sigmoid'], 'coef0': [.1, 1, 10, 100], 'C': [1, 10, 100, 1000]}]
+
+        learner = SVR()
+        gs = GridSearchCV(learner, params, 'f1', cv=5, n_jobs = 7)
+        gs.fit(self.master_features, self.master_lat)
+
+        print("The best parameters found were: ")
+        print(gs.best_params_)
+
+        if test:
+            lat_preds = gs.predict(self.master_test_features)
+        else:
+            lat_preds = gs.predict(self.master_features)
+
+        gs.fit(self.master_features, self.master_long)
+        print("the best params for longitude were: ")
+        print(gs.best_params_)
+        if test:
+            long_preds = gs.predict(self.master_test_features)
+        else:
+            long_preds = gs.predict(self.master_features)
+        return lat_preds, long_preds
+
+
 
         #Decision Tree
 
