@@ -1,11 +1,5 @@
 import numpy as np
 
-f = open("./data/test_file.txt", "w")
+myArray = np.array([1,2,3])
 
-my_list = np.arange(0, 12)
-
-for number in my_list:
-    f.write(str(number))
-    f.write("\n")
-
-f.close()
+print(myArray.reshape((3,1)))
