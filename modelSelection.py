@@ -46,7 +46,7 @@ class modelSelection(object):
         # x_predicts, y_predicts = self.kNN_advanced()
         # self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
 
-        new_file = open("./data/submission_dt_best.txt", "w")
+        new_file = open("./data/submission_svr_best.txt", "w")
 
         counter = 0
         new_file.write("Id,Lat,Lon")

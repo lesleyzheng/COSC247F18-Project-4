@@ -14,16 +14,17 @@ class createFeatures(object):
         self.graph = None
         self.rand_ids = None
 
-        self.master_features = None
+        self.master_test_features_v2 = None
+        self.master_features_v2 = None
 
     def start(self):
 
         self.initialize_values()
 
-        self.master_features = [None]*len(self.test_set)
+        self.master_test_features_v2 = [None]*len(self.test_set) #change
 
         counter = 0
-        for key, value in self.test_set.items():
+        for key, value in self.test_set.items(): #change
 
             temp_list = [None]*26 #initialize
 
@@ -53,7 +54,7 @@ class createFeatures(object):
                 num_friends = len(self.graph[key])
                 temp_list[7] = num_friends
 
-            friends_lat, friends_long, importancefc = self.friends_cluster_location(key)
+            friends_lat, friends_long, importancefc = self.friends_cluster_location(key, 40)
             temp_list[8] = friends_lat #location where friends cluter
             temp_list[9] = friends_long
             temp_list[10] = importancefc
@@ -88,6 +89,28 @@ class createFeatures(object):
             temp_list[24] = long_from_all_hours
             temp_list[25] = importance_all_hours
 
+            # additional features
+            # varying radius
+            friend_30_lat, friend_30_long, friend_30_import = self.friends_cluster_location(key, 30)
+            temp_list[26] = friend_30_lat
+            temp_list[27] = friend_30_long
+            temp_list[28] = friend_30_import
+
+            friend_50_lat, friend_50_long, friend_50_import = self.friends_cluster_location(key, 50)
+            temp_list[29] = friend_50_lat
+            temp_list[30] = friend_50_long
+            temp_list[31] = friend_50_import
+
+            friend_60_lat, friend_60_long, friend_60_import = self.friends_cluster_location(key, 60)
+            temp_list[32] = friend_60_lat
+            temp_list[33] = friend_60_long
+            temp_list[34] = friend_60_import
+
+            friend_70_lat, friend_70_long, friend_70_import = self.friends_cluster_location(key, 70)
+            temp_list[35] = friend_70_lat
+            temp_list[36] = friend_70_long
+            temp_list[37] = friend_70_import
+
             self.master_features[counter] = temp_list
             counter += 1
 
@@ -96,7 +119,7 @@ class createFeatures(object):
                 print(key)
                 print(temp_list)
 
-        pickle_out = open("./data/master_test_features.pkl", "wb")
+        pickle_out = open("./data/master_test_features.pkl", "wb") #change
         desc = "array of all test users and their features; see doc for details"
         pickle.dump((self.master_features, desc), pickle_out)
         pickle_out.close()
