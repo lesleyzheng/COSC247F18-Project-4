@@ -29,12 +29,12 @@ class modelSelection(object):
         self.initializeValues()
 
         # Decision Tree
-        print("Regression Decision Tree")
-        x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_dt()
+        # print("Regression Decision Tree")
+        # x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_dt()
 
         # SVR
-        # print("SVR")
-        # x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_svr()
+        print("SVR")
+        x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_svr()
 
         # error
         total_svr_error = self.total_MSE(x_train_predicts, self.master_lat, y_train_predicts, self.master_long)
