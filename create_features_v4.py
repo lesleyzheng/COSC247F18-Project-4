@@ -26,7 +26,7 @@ class createFeatures(object):
         counter = 0
         for key, value in self.test_set.items(): #change
 
-            temp_list = [None]*26 #initialize
+            temp_list = [None]*44 #initialize
 
             temp_list[0] = value[0] #hour1 and importance
             if value[0] == 25:
