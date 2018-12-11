@@ -29,21 +29,21 @@ class modelSelection(object):
         self.initializeValues()
 
         print("norm")
-        x_predicts, y_predicts = self.SVM(False)
-        self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
+        x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_knn(False)
+        self.total_MSE(x_train_predicts, self.master_lat, y_train_predicts, self.master_long)
         # print("advanced")
         # x_predicts, y_predicts = self.kNN_advanced()
         # self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
 
-        # new_file = open("./data/submission_knn10_norm.txt", "w")
-        #
-        # counter = 0
-        # new_file.write("Id,Lat,Lon")
-        # for key in self.test_dict.keys():
-        #     string = "\n" + str(key) + "," + str(x_predicts[counter]) + "," + str(y_predicts[counter])
-        #     new_file.write(string)
-        #     counter += 1
-        # new_file.close()
+        new_file = open("./data/submission_grid_knn.txt", "w")
+
+        counter = 0
+        new_file.write("Id,Lat,Lon")
+        for key in self.test_dict.keys():
+            string = "\n" + str(key) + "," + str(x_test_predicts[counter]) + "," + str(y_test_predicts[counter])
+            new_file.write(string)
+            counter += 1
+        new_file.close()
 
     def total_MSE(self, pred_x, targ_x, pred_y, targ_y):
 
@@ -111,7 +111,7 @@ class modelSelection(object):
         #SVC
     def SVM(self, test):
 
-        SVM = SVR(kernel = "linear", max_iter = 10000)
+        SVM = SVR(kernel = "rbf", max_iter = 10000)
 
         SVM.fit(self.master_features, self.master_lat)
         if test:
@@ -127,7 +127,7 @@ class modelSelection(object):
 
         return lat_predicts, long_predicts
 
-    def runGridSearch(self, test):
+    def runGridSearch_svr(self, test):
 
         params = [{'kernel': ['rbf'], 'gamma': [1.0, 0.1, 0.01, 0.001], 'C': [1, 10, 100, 1000]},
                   {'kernel': ['poly'], 'degree': [2, 3, 4, 5], 'C': [1, 10, 100, 1000]},
@@ -156,11 +156,35 @@ class modelSelection(object):
             long_preds = gs.predict(self.master_features)
         return lat_preds, long_preds
 
+    def runGridSearch_knn(self):
+
+        params = {'n_neighbors': [1,3,5,7,9], 'weights' : ['uniform', 'distance'], 'algorithm' : ['ball_tree', 'kd_tree', 'brute'], 'p' : [1,2]}
+
+        learner = KNeighborsRegressor(n_jobs = 15)
+        gs = GridSearchCV(learner, params, 'neg_mean_squared_error', cv=5, n_jobs = 15)
+        gs.fit(self.master_features, self.master_lat)
+        print("The best parameters found were: ")
+        print(gs.best_params_)
+        print(gs.get_params())
+
+
+        lat_test_preds = gs.predict(self.master_test_features)
+
+        lat_train_preds = gs.predict(self.master_features)
+
+        gs.fit(self.master_features, self.master_long)
+        print("the best params for longitude were: ")
+        print(gs.best_params_)
+        print(gs.get_params())
+        long_test_preds = gs.predict(self.master_test_features)
+
+        long_train_preds = gs.predict(self.master_features)
+        return lat_train_preds, long_train_preds, lat_test_preds, long_test_preds
 
 
         #Decision Tree
     def decisionTree(self, test):
-        dTree = DecisionTreeRegressor()
+        dTree = DecisionTreeRegressor(max_depth = 5)
 
         dTree.fit(self.master_features, self.master_lat)
         if test:
