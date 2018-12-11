@@ -14,17 +14,16 @@ class createFeatures(object):
         self.graph = None
         self.rand_ids = None
 
-        self.master_test_features_v2 = None
-        self.master_features_v2 = None
+        self.master_features = None
 
     def start(self):
 
         self.initialize_values()
 
-        self.master_test_features_v2 = [None]*len(self.test_set) #change
+        self.master_features = [None]*len(self.train_set)
 
         counter = 0
-        for key, value in self.test_set.items(): #change
+        for key, value in self.train_set.items():
 
             temp_list = [None]*44 #initialize
 
@@ -121,7 +120,7 @@ class createFeatures(object):
             temp_list[42] = hour2_long
             temp_list[43] = hour2_importance
 
-            self.master_test_features_v2[counter] = temp_list
+            self.master_features[counter] = temp_list
             counter += 1
 
             if counter%1000 == 0:
@@ -129,9 +128,9 @@ class createFeatures(object):
                 print(key)
                 print(temp_list)
 
-        pickle_out = open("./data/master_test_features_v2.pkl", "wb") #change
-        desc = "(v2) array of all test users and their features; see doc for details"
-        pickle.dump((self.master_test_features_v2, desc), pickle_out)
+        pickle_out = open("./data/master_features_v2.pkl", "wb")
+        desc = "(V2) array of all train users and their features; see doc for details"
+        pickle.dump((self.master_features, desc), pickle_out)
         pickle_out.close()
 
     def initialize_values(self):
@@ -222,7 +221,7 @@ class createFeatures(object):
         # no friends return -1,-1 for loc and 0 for importance
         if len(friends) == 0:
             return -1, -1, 0
-        your_data = self.test_set[id]
+        your_data = self.train_set[id]
         key_hour = []
 
         for i in range(start, 3):
@@ -266,7 +265,7 @@ class createFeatures(object):
         friends = self.graph[id]
         if len(friends) == 0:
             return -1, -1, 0
-        your_data = self.test_set[id]
+        your_data = self.train_set[id]
         posts_dict = dict()
 
         for f in friends:
@@ -301,7 +300,7 @@ class createFeatures(object):
         if len(friends) == 0:
             return -1, -1, 0
 
-        your_data = self.test_set[id]
+        your_data = self.train_set[id]
         hours_dict = dict()
 
         for f in friends:
@@ -347,7 +346,7 @@ class createFeatures(object):
         # no friends return -1,-1 for loc and 0 for importance
         if len(friends) == 0:
             return -1, -1, 0
-        your_data = self.test_set[id]
+        your_data = self.train_set[id]
 
         # dictionary where id is key and the values are the differences between the points' hours as a list
         hour_dict = dict()
