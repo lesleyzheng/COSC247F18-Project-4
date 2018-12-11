@@ -32,8 +32,12 @@ class modelSelection(object):
         # x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_dt()
 
         # SVR
+        # print("SVR")
+        # x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_svr()
+
+        # SVR
         print("SVR")
-        x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_svr()
+        x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_svr_linear()
 
         # error
         total_svr_error = self.total_MSE(x_train_predicts, self.master_lat, y_train_predicts, self.master_long)
@@ -47,7 +51,7 @@ class modelSelection(object):
         # self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
 
 
-        new_file = open("./data/submission_svr_best.txt", "w")
+        new_file = open("./data/submission_svr_linear_best.txt", "w")
 
 
         counter = 0
@@ -108,20 +112,6 @@ class modelSelection(object):
 
         return lat_predicts, long_predicts
 
-        # kNN_parameters = [{'n_neighbors': [1, 2, 3, 4, 5],
-        #                    'weights': ['uniform', 'distance'],
-        #                    'algorithm': ['ball_tree', 'kd_tree', 'brute'],
-        #                    'p': [1, 2],
-        #                    'metric': ['euclidean', 'manhattan', 'chebyshev', 'minkowski', 'wminkowski', 'seuclidean', 'manhalanobis']
-        #                    }]
-        #
-        # kNN_gs = GridSearchCV(estimator=kNN, param_grid=kNN_parameters, scoring='neg_mean_squared_error', n_jobs=2, cv=5)
-        # kNN_gs.fit(X=self.master_features, y=self.master_lat)
-        # print(kNN_gs.cv_results_)
-        # knn_results = pd.DataFrame(data=kNN_gs.cv_results_)
-        # print(knn_results)
-
-        #SVC
     def SVM(self, test):
 
         SVM = SVR(kernel = "rbf", max_iter = 10000)
@@ -165,6 +155,111 @@ class modelSelection(object):
 
         return lat_train_preds, long_train_preds, lat_test_preds, long_test_preds
 
+    def runGridSearch_svr_linear(self):
+
+        print("linear")
+
+        params = [{'kernel': ['linear'], 'C': [1, 10, 100, 1000]}]
+
+        learner = SVR()
+        gs = GridSearchCV(learner, params, 'neg_mean_squared_error', cv=5, n_jobs = 15)
+        gs.fit(self.master_features, self.master_lat)
+
+        print("The best parameters for latitude were: ")
+        print(gs.best_params_)
+        print(gs.get_params())
+
+        lat_train_preds = gs.predict(self.master_features)
+        lat_test_preds = gs.predict(self.master_test_features)
+
+        gs.fit(self.master_features, self.master_long)
+        print("the best params for longitude were: ")
+        print(gs.best_params_)
+        print(gs.get_params())
+
+        long_train_preds = gs.predict(self.master_features)
+        long_test_preds = gs.predict(self.master_test_features)
+
+        return lat_train_preds, long_train_preds, lat_test_preds, long_test_preds
+
+    def runGridSearch_svr_rbf(self):
+
+        params = [
+            {'kernel': ['rbf'], 'gamma': [1.0, 0.1, 0.01, 0.001], 'C': [1, 10, 100, 1000]},
+                 ]
+
+        learner = SVR()
+        gs = GridSearchCV(learner, params, 'neg_mean_squared_error', cv=5, n_jobs = 15)
+        gs.fit(self.master_features, self.master_lat)
+
+        print("The best parameters for latitude were: ")
+        print(gs.best_params_)
+        print(gs.get_params())
+
+        lat_train_preds = gs.predict(self.master_features)
+        lat_test_preds = gs.predict(self.master_test_features)
+
+        gs.fit(self.master_features, self.master_long)
+        print("the best params for longitude were: ")
+        print(gs.best_params_)
+        print(gs.get_params())
+
+        long_train_preds = gs.predict(self.master_features)
+        long_test_preds = gs.predict(self.master_test_features)
+
+        return lat_train_preds, long_train_preds, lat_test_preds, long_test_preds
+
+    def runGridSearch_svr_poly(self):
+
+        params = [{'kernel': ['poly'], 'coef0': [.1, 1, 10, 100], 'degree': [2, 3, 4, 5], 'gamma': [1.0, 0.1, 0.01, 0.001], 'C': [1, 10, 100, 1000]},
+                  ]
+
+        learner = SVR()
+        gs = GridSearchCV(learner, params, 'neg_mean_squared_error', cv=5, n_jobs = 15)
+        gs.fit(self.master_features, self.master_lat)
+
+        print("The best parameters for latitude were: ")
+        print(gs.best_params_)
+        print(gs.get_params())
+
+        lat_train_preds = gs.predict(self.master_features)
+        lat_test_preds = gs.predict(self.master_test_features)
+
+        gs.fit(self.master_features, self.master_long)
+        print("the best params for longitude were: ")
+        print(gs.best_params_)
+        print(gs.get_params())
+
+        long_train_preds = gs.predict(self.master_features)
+        long_test_preds = gs.predict(self.master_test_features)
+
+        return lat_train_preds, long_train_preds, lat_test_preds, long_test_preds
+
+    def runGridSearch_svr_sigmoid(self):
+
+        params = [{'kernel': ['sigmoid'], 'coef0': [.1, 1, 10, 100], 'gamma': [1.0, 0.1, 0.01, 0.001], 'C': [1, 10, 100, 1000]}]
+
+        learner = SVR()
+        gs = GridSearchCV(learner, params, 'neg_mean_squared_error', cv=5, n_jobs = 15)
+        gs.fit(self.master_features, self.master_lat)
+
+        print("The best parameters for latitude were: ")
+        print(gs.best_params_)
+        print(gs.get_params())
+
+        lat_train_preds = gs.predict(self.master_features)
+        lat_test_preds = gs.predict(self.master_test_features)
+
+        gs.fit(self.master_features, self.master_long)
+        print("the best params for longitude were: ")
+        print(gs.best_params_)
+        print(gs.get_params())
+
+        long_train_preds = gs.predict(self.master_features)
+        long_test_preds = gs.predict(self.master_test_features)
+
+        return lat_train_preds, long_train_preds, lat_test_preds, long_test_preds
+
     def runGridSearch_svr(self):
 
         params = [{'kernel': ['linear'], 'C': [1, 10, 100, 1000]},
@@ -188,6 +283,10 @@ class modelSelection(object):
         print(gs.best_params_)
         print(gs.get_params())
 
+        long_train_preds = gs.predict(self.master_features)
+        long_test_preds = gs.predict(self.master_test_features)
+
+        return lat_train_preds, long_train_preds, lat_test_preds, long_test_preds
 
     def runGridSearch_knn(self):
 
