@@ -37,7 +37,7 @@ class modelSelection(object):
         # x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_svr()
 
         # error
-        total_svr_error = self.total_MSE(x_test_predicts, self.master_lat, y_test_predicts, self.master_long)
+        total_svr_error = self.total_MSE(x_train_predicts, self.master_lat, y_train_predicts, self.master_long)
 
         # print("norm")
         # x_predicts, y_predicts = self.SVM(False)
@@ -140,7 +140,7 @@ class modelSelection(object):
 
     def runGridSearch_dt(self):
 
-        params = [{'splitter': ['best', 'random'], 'max_depth': ['None', 1, 2, 3, 4, 5, 6]}]
+        params = [{'splitter': ['best', 'random'], 'max_depth': [None, 1, 2, 3, 4, 5, 6]}]
 
         learner = DecisionTreeRegressor()
         gs = GridSearchCV(learner, params, 'neg_mean_squared_error', cv=5, n_jobs=15)
