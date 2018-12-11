@@ -29,7 +29,7 @@ class modelSelection(object):
         self.initializeValues()
 
         print("norm")
-        x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_knn(False)
+        x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_knn()
         self.total_MSE(x_train_predicts, self.master_lat, y_train_predicts, self.master_long)
         # print("advanced")
         # x_predicts, y_predicts = self.kNN_advanced()
