@@ -111,6 +111,17 @@ class createFeatures(object):
             temp_list[36] = friend_70_long
             temp_list[37] = friend_70_import
 
+            hour1_lat, hour1_long, hour1_importance = self.non_trickle_hours(key, 0)
+            temp_list[38] = hour1_lat
+            temp_list[39] = hour1_long
+            temp_list[40] = hour1_importance
+
+            hour2_lat, hour2_long, hour2_importance = self.non_trickle_hours(key, 1)
+            temp_list[41] = hour2_lat
+            temp_list[42] = hour2_long
+            temp_list[43] = hour2_importance
+
+
             self.master_features[counter] = temp_list
             counter += 1
 
@@ -326,6 +337,42 @@ class createFeatures(object):
         else:
             # random
             key = np.random.choice(np.array(min_keys), 1)[0]
+            return self.train_set[key][3], self.train_set[key][4], 1
+
+    def non_trickle_hours(self, id, hour):
+        # return location with closest hour1, then hour2, then hour3
+        # no friends return -1,-1 for loc and 0 for importance
+        if id not in self.graph:
+            return -1, -1, 0
+        friends = self.graph[id]
+        # no friends return -1,-1 for loc and 0 for importance
+        if len(friends) == 0:
+            return -1, -1, 0
+        your_data = self.test_set[id]
+
+        # dictionary where id is key and the values are the differences between the points' hours as a list
+        hour_dict = dict()
+        for f in friends:
+            # checking if in training set
+            if f not in self.train_set:
+                continue
+            their_data = self.train_set[f]
+            # do not put ids with value 25 into the dictionary
+            if their_data[hour] != 25 and your_data[hour] != 25:
+                hour_dict[f] = abs(your_data[hour] - their_data[hour])
+        if len(hour_dict) == 0:
+            return -1,-1, 0
+        min_hour1_diff = min(hour_dict.values())
+        key_hour = [k for k, v in hour_dict.items() if v == min_hour1_diff]
+
+        if len(key_hour) == 1 and key_hour != 25:
+            return self.train_set[key_hour[0]][3], self.train_set[key_hour[0]][4], 1
+        else:
+            # if there are no valid hours
+            if len(key_hour) == 0:
+                return -1, -1, 0
+            # if there is still a tie pick randomly
+            key = np.random.choice(np.array(key_hour), 1)[0]
             return self.train_set[key][3], self.train_set[key][4], 1
 
 
