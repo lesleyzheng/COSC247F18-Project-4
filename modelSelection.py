@@ -7,6 +7,7 @@ from sklearn.svm import SVR
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import mean_squared_error
 from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import BaggingRegressor
 
 class modelSelection(object):
 
@@ -31,9 +32,13 @@ class modelSelection(object):
         # print("Regression Decision Tree")
         # x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_dt()
 
+        #Bagging
+        print("Bagging using decision tree")
+        x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.bagging()
+
         # SVR
-        print("SVR")
-        x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_svr()
+        # print("SVR")
+        # x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_svr()
 
         # error
         total_svr_error = self.total_MSE(x_train_predicts, self.master_lat, y_train_predicts, self.master_long)
@@ -47,7 +52,7 @@ class modelSelection(object):
         # self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
 
 
-        new_file = open("./data/submission_svr_best.txt", "w")
+        new_file = open("./data/submission_bagging_dt.txt", "w")
 
 
         counter = 0
@@ -231,6 +236,24 @@ class modelSelection(object):
             long_predicts = dTree.predict(self.master_features)
 
         return lat_predicts, long_predicts
+
+    def bagging(self):
+        learner = DecisionTreeRegressor(max_depth= 5)
+        bag = BaggingRegressor(learner, n_jobs = 2)
+        bag.fit(self.master_features, self.master_lat)
+
+
+        lat_test_predicts = bag.predict(self.master_test_features)
+
+        lat_train_predicts = bag.predict(self.master_features)
+
+        bag.fit(self.master_features, self.master_long)
+
+        long_test_predicts = bag.predict(self.master_test_features)
+
+        long_train_predicts = bag.predict(self.master_features)
+
+        return lat_train_predicts, long_train_predicts, lat_test_predicts, long_test_predicts
 
 
     def initializeValues(self):
