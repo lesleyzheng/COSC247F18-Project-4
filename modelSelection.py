@@ -27,7 +27,6 @@ class modelSelection(object):
     def start(self):
 
         self.initializeValues()
-
         # Decision Tree
         # print("Regression Decision Tree")
         # x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_dt()
@@ -42,11 +41,14 @@ class modelSelection(object):
         # print("norm")
         # x_predicts, y_predicts = self.SVM(False)
         # self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
+
         # print("advanced")
         # x_predicts, y_predicts = self.kNN_advanced()
         # self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
 
+
         new_file = open("./data/submission_svr_best.txt", "w")
+
 
         counter = 0
         new_file.write("Id,Lat,Lon")
@@ -122,7 +124,7 @@ class modelSelection(object):
         #SVC
     def SVM(self, test):
 
-        SVM = SVR(kernel = "linear", max_iter = 10000)
+        SVM = SVR(kernel = "rbf", max_iter = 10000)
 
         SVM.fit(self.master_features, self.master_lat)
         if test:
@@ -186,14 +188,35 @@ class modelSelection(object):
         print(gs.best_params_)
         print(gs.get_params())
 
-        long_train_preds = gs.predict(self.master_features)
+
+    def runGridSearch_knn(self):
+
+        params = {'n_neighbors': [1,3,5,7,9], 'weights' : ['uniform', 'distance'], 'algorithm' : ['ball_tree', 'kd_tree', 'brute'], 'p' : [1,2]}
+
+        learner = KNeighborsRegressor(n_jobs = 15)
+        gs = GridSearchCV(learner, params, 'neg_mean_squared_error', cv=5, n_jobs = 15)
+        gs.fit(self.master_features, self.master_lat)
+        print("The best parameters found were: ")
+        print(gs.best_params_)
+        print(gs.get_params())
+
+
+        lat_test_preds = gs.predict(self.master_test_features)
+
+        lat_train_preds = gs.predict(self.master_features)
+
+        gs.fit(self.master_features, self.master_long)
+        print("the best params for longitude were: ")
+        print(gs.best_params_)
+        print(gs.get_params())
         long_test_preds = gs.predict(self.master_test_features)
 
+        long_train_preds = gs.predict(self.master_features)
         return lat_train_preds, long_train_preds, lat_test_preds, long_test_preds
 
         #Decision Tree
     def decisionTree(self, test):
-        dTree = DecisionTreeRegressor()
+        dTree = DecisionTreeRegressor(max_depth = 5)
 
         dTree.fit(self.master_features, self.master_lat)
         if test:
