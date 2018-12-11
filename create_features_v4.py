@@ -122,7 +122,7 @@ class createFeatures(object):
             temp_list[43] = hour2_importance
 
 
-            self.master_features[counter] = temp_list
+            self.master_test_features_v2[counter] = temp_list
             counter += 1
 
             if counter%1000 == 0:
@@ -132,7 +132,7 @@ class createFeatures(object):
 
         pickle_out = open("./data/master_test_features.pkl", "wb") #change
         desc = "array of all test users and their features; see doc for details"
-        pickle.dump((self.master_features, desc), pickle_out)
+        pickle.dump((self.master_test_features_v2, desc), pickle_out)
         pickle_out.close()
 
     def initialize_values(self):
