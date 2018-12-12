@@ -13,6 +13,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.ensemble import ExtraTreesRegressor
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.ensemble import BaggingRegressor
+from sklearn.model_selection import cross_val_score
 
 
 class modelSelection(object):
@@ -165,11 +166,19 @@ class modelSelection(object):
         lat_train_preds = learner.predict(self.master_features)
         lat_test_preds = learner.predict(self.master_test_features)
 
+        # cross validation score
+        score_lat = cross_val_score(learner, self.master_features, self.master_lat, cv=5)
+        print(f"score lat is {score_lat.mean()}")
+
         learner = RandomForestRegressor(n_estimators=100, max_depth=10) # best parameters for long
         learner.fit(self.master_features, self.master_long)
 
         long_train_preds = learner.predict(self.master_features)
         long_test_preds = learner.predict(self.master_test_features)
+
+        # cross validation score
+        score_long = cross_val_score(learner, self.master_features, self.master_long, cv=5)
+        print(f"score long is {score_long.mean()}")
 
         return lat_train_preds, long_train_preds, lat_test_preds, long_test_preds
 
