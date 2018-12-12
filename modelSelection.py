@@ -24,6 +24,11 @@ class modelSelection(object):
 
         self.scaler = None
 
+        # v2
+        self.raw_master_features_v2 = None
+        self.master_features_v2 = None
+        self.master_test_features_v2 = None
+        self.scaler_v2 = None
 
     def start(self):
 
@@ -77,7 +82,7 @@ class modelSelection(object):
 
     def linear_regression(self):
 
-        learner = LinearRegression()
+        learner = LinearRegression(n_jobs=17)
         learner.fit(self.master_features, self.master_lat)
 
         lat_train_preds = learner.predict(self.master_features)
@@ -383,6 +388,24 @@ class modelSelection(object):
         self.raw_master_features = self.master_features
         self.master_features = self.scaler.transform(self.master_features)
         self.master_test_features = self.scaler.transform(self.master_test_features)
+
+        # v2 features
+        pickle_in_5 = open("./data/master_features_v2.pkl", "rb")
+        self.master_features_v2, desc5 = pickle.load(pickle_in_5)
+        print(desc)
+
+        pickle_in6 = open("./data/master_test_features_v2.pkl", "rb")
+        self.master_test_features_v2, desc6 = pickle.load(pickle_in6)
+        print(desc6)
+
+        self.master_features_v2 = np.array(self.master_features_v2)
+        self.master_test_features_v2 = np.array(self.master_test_features_v2)
+        self.raw_master_features_v2 = self.master_features_v2
+
+        self.scaler_v2 = MinMaxScaler()
+        self.scaler_v2.fit(self.master_features_v2)
+        self.master_features_v2 = self.scaler_v2.transform(self.master_features_v2)
+        self.master_test_features_v2 = self.scaler_v2.transform(self.master_features_v2)
 
     def get_target_array(self, target_dict):
 
