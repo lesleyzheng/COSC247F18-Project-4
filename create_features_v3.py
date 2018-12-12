@@ -5,6 +5,10 @@ import numpy as np
 import statistics
 from math import sqrt
 
+'''
+Creates master features for test set.
+'''
+
 class createFeatures(object):
 
     def __init__(self):

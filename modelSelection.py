@@ -11,7 +11,6 @@ from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.ensemble import ExtraTreesRegressor
 from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.model_selection import cross_val_score
 
 class modelSelection(object):
 
@@ -76,6 +75,7 @@ class modelSelection(object):
         # error
         # total_error = self.total_MSE(x_train_predicts, self.master_lat, y_train_predicts, self.master_long)
 
+        # final learner
         # best random forest regressor
         print("best random forest regressor")
         x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.best_random_forest_regressor()
