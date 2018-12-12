@@ -52,7 +52,7 @@ class modelSelection(object):
         # self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
 
 
-        new_file = open("./data/submission_bagging_dt.txt", "w")
+        new_file = open("./data/submission_bagging_dt_nolim.txt", "w")
 
 
         counter = 0
@@ -221,7 +221,7 @@ class modelSelection(object):
 
         #Decision Tree
     def decisionTree(self, test):
-        dTree = DecisionTreeRegressor(max_depth = 5)
+        dTree = DecisionTreeRegressor()
 
         dTree.fit(self.master_features, self.master_lat)
         if test:
