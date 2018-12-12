@@ -74,18 +74,14 @@ class modelSelection(object):
         # x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.gradient_boosting_regressor()
 
         # error
-        total_error = self.total_MSE(x_train_predicts, self.master_lat, y_train_predicts, self.master_long)
+        # total_error = self.total_MSE(x_train_predicts, self.master_lat, y_train_predicts, self.master_long)
 
-        # print("norm")
-        # x_predicts, y_predicts = self.SVM(False)
-        # self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
+        # best random forest regressor
+        print("best random forest regressor")
+        x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.best_random_forest_regressor()
 
-        # print("advanced")
-        # x_predicts, y_predicts = self.kNN_advanced()
-        # self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
-
-        new_file = open("./data/submission_random_forest_grid_search.txt", "w")
-
+        # submission
+        new_file = open("./data/submission_best_random_forest.txt", "w")
 
         counter = 0
         new_file.write("Id,Lat,Lon")
@@ -127,6 +123,22 @@ class modelSelection(object):
         lat_train_preds = learner.predict(self.master_features)
         lat_test_preds = learner.predict(self.master_test_features)
 
+        learner.fit(self.master_features, self.master_long)
+
+        long_train_preds = learner.predict(self.master_features)
+        long_test_preds = learner.predict(self.master_test_features)
+
+        return lat_train_preds, long_train_preds, lat_test_preds, long_test_preds
+
+    def best_random_forest_regressor(self):
+
+        learner = RandomForestRegressor(n_estimators=90, max_depth=9) # best parameters for lat
+        learner.fit(self.master_features, self.master_lat)
+
+        lat_train_preds = learner.predict(self.master_features)
+        lat_test_preds = learner.predict(self.master_test_features)
+
+        learner = RandomForestRegressor(n_estimators=100, max_depth=10) # best parameters for long
         learner.fit(self.master_features, self.master_long)
 
         long_train_preds = learner.predict(self.master_features)
