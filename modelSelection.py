@@ -7,6 +7,7 @@ from sklearn.svm import SVR
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import mean_squared_error
 from sklearn.tree import DecisionTreeRegressor
+from sklearn.linear_model import LinearRegression
 
 class modelSelection(object):
 
@@ -35,12 +36,16 @@ class modelSelection(object):
         # print("SVR")
         # x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_svr()
 
-        # SVR
-        print("SVR")
+        # SVR linear
+        # print("SVR")
+        # x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_svr_linear()
+
+        # linear regression
+        print("linear regression_v1")
         x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_svr_linear()
 
         # error
-        total_svr_error = self.total_MSE(x_train_predicts, self.master_lat, y_train_predicts, self.master_long)
+        total_error = self.total_MSE(x_train_predicts, self.master_lat, y_train_predicts, self.master_long)
 
         # print("norm")
         # x_predicts, y_predicts = self.SVM(False)
@@ -50,8 +55,7 @@ class modelSelection(object):
         # x_predicts, y_predicts = self.kNN_advanced()
         # self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
 
-
-        new_file = open("./data/submission_svr_linear_best.txt", "w")
+        new_file = open("./data/submission_linear_regression_v1.txt", "w")
 
 
         counter = 0
@@ -70,6 +74,21 @@ class modelSelection(object):
         loss = (mean_squared_error(location, pred_location)) ** (1 / 2)
 
         print("Total MSE " + str(loss))
+
+    def linear_regression(self):
+
+        learner = LinearRegression()
+        learner.fit(self.master_features, self.master_lat)
+
+        lat_train_preds = learner.predict(self.master_features)
+        lat_test_preds = learner.predict(self.master_test_features)
+
+        learner.fit(self.master_features, self.master_long)
+
+        long_train_preds = learner.predict(self.master_features)
+        long_test_preds = learner.predict(self.master_test_features)
+
+        return lat_train_preds, long_train_preds, lat_test_preds, long_test_preds
 
     def kNN_norm(self, test):
 
