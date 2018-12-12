@@ -47,7 +47,7 @@ class modelSelection(object):
 
         # linear regression
         print("linear regression_v1")
-        x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_svr_linear()
+        x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.linear_regression()
 
         # error
         total_error = self.total_MSE(x_train_predicts, self.master_lat, y_train_predicts, self.master_long)
@@ -92,6 +92,39 @@ class modelSelection(object):
 
         long_train_preds = learner.predict(self.master_features)
         long_test_preds = learner.predict(self.master_test_features)
+
+        return lat_train_preds, long_train_preds, lat_test_preds, long_test_preds
+
+    def linear_regression_advanced(self):
+
+        learner = LinearRegression(n_jobs=17)
+        learner.fit(self.master_features, self.master_lat)
+
+        lat_train_preds = learner.predict(self.master_features)
+        lat_test_preds = learner.predict(self.master_test_features)
+
+        # find shape
+        n, m = self.raw_master_features.shape
+
+        # predict train longitude by using new master features
+        new_master_train_features = np.hstack((self.master_features, lat_train_preds.reshape((n, 1))))
+        new_train_scaler = MinMaxScaler
+        new_train_scaler.fit(new_master_train_features)
+        new_train_scaler.transform(new_master_train_features)
+
+        learner.fit(self.new_master_train_features, self.master_long)
+
+        long_train_preds = learner.predict(self.master_features)
+
+        # predict train longitude by using new master features
+        new_master_test_features = np.hstack((self.master_features, lat_test_preds.reshape((n, 1))))
+        new_test_scaler = MinMaxScaler
+        new_test_scaler.fit(new_master_test_features)
+        new_test_scaler.transform(new_master_test_features)
+
+        learner.fit(self.new_master_test_features, self.master_long)
+
+        long_test_preds = learner.predict(self.master_features)
 
         return lat_train_preds, long_train_preds, lat_test_preds, long_test_preds
 
