@@ -1,9 +1,10 @@
 import pickle
-from multiprocessing import Pool
-from random import randint
 import numpy as np
-import statistics
 from math import sqrt
+
+'''
+Creates master features for train set.
+'''
 
 class createFeatures(object):
 
