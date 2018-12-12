@@ -8,6 +8,10 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import mean_squared_error
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import ExtraTreesRegressor
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.model_selection import cross_val_score
 
 class modelSelection(object):
 
@@ -33,21 +37,41 @@ class modelSelection(object):
     def start(self):
 
         self.initializeValues()
-        # Decision Tree
-        # print("Regression Decision Tree")
+        # Random Forest Grid Search
+        print("Random Forest Grid Search")
+        x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_random_forest()
+
+        # Decision Tree Grid Search
+        # print("Regression Decision Tree GS")
         # x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_dt()
 
-        # SVR
-        # print("SVR")
+        # SVR Grid Search
+        # print("SVR GS")
         # x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_svr()
 
         # SVR linear
-        # print("SVR")
+        # print("SVR GS linear")
         # x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_svr_linear()
 
         # linear regression
-        print("linear regression_v1")
-        x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.linear_regression()
+        # print("linear regression_v1")
+        # x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.linear_regression()
+
+        # linear regression advanced
+        # print("advanced linear regression v1")
+        # x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.linear_regression_advanced()
+
+        # random forest regressor
+        # print("random forest regressor 5")
+        # x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.random_forest_regressor()
+
+        # extra random forest regressor
+        # print("extra random forest regressor")
+        # x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.extra_tree_regressor()
+
+        # gradient boosting
+        # print("gradient boosting")
+        # x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.gradient_boosting_regressor()
 
         # error
         total_error = self.total_MSE(x_train_predicts, self.master_lat, y_train_predicts, self.master_long)
@@ -60,7 +84,7 @@ class modelSelection(object):
         # x_predicts, y_predicts = self.kNN_advanced()
         # self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
 
-        new_file = open("./data/submission_linear_regression_v1.txt", "w")
+        new_file = open("./data/submission_random_forest_grid_search.txt", "w")
 
 
         counter = 0
@@ -79,6 +103,51 @@ class modelSelection(object):
         loss = (mean_squared_error(location, pred_location)) ** (1 / 2)
 
         print("Total MSE " + str(loss))
+
+    def gradient_boosting_regressor(self):
+
+        learner = GradientBoostingRegressor()
+        learner.fit(self.master_features, self.master_lat)
+
+        lat_train_preds = learner.predict(self.master_features)
+        lat_test_preds = learner.predict(self.master_test_features)
+
+        learner.fit(self.master_features, self.master_long)
+
+        long_train_preds = learner.predict(self.master_features)
+        long_test_preds = learner.predict(self.master_test_features)
+
+        return lat_train_preds, long_train_preds, lat_test_preds, long_test_preds
+
+    def extra_tree_regressor(self):
+
+        learner = ExtraTreesRegressor(max_depth=10)
+        learner.fit(self.master_features, self.master_lat)
+
+        lat_train_preds = learner.predict(self.master_features)
+        lat_test_preds = learner.predict(self.master_test_features)
+
+        learner.fit(self.master_features, self.master_long)
+
+        long_train_preds = learner.predict(self.master_features)
+        long_test_preds = learner.predict(self.master_test_features)
+
+        return lat_train_preds, long_train_preds, lat_test_preds, long_test_preds
+
+    def random_forest_regressor(self):
+
+        learner = RandomForestRegressor(max_depth=5)
+        learner.fit(self.master_features, self.master_lat)
+
+        lat_train_preds = learner.predict(self.master_features)
+        lat_test_preds = learner.predict(self.master_test_features)
+
+        learner.fit(self.master_features, self.master_long)
+
+        long_train_preds = learner.predict(self.master_features)
+        long_test_preds = learner.predict(self.master_test_features)
+
+        return lat_train_preds, long_train_preds, lat_test_preds, long_test_preds
 
     def linear_regression(self):
 
@@ -108,23 +177,24 @@ class modelSelection(object):
 
         # predict train longitude by using new master features
         new_master_train_features = np.hstack((self.master_features, lat_train_preds.reshape((n, 1))))
-        new_train_scaler = MinMaxScaler
+        new_train_scaler = MinMaxScaler()
         new_train_scaler.fit(new_master_train_features)
         new_train_scaler.transform(new_master_train_features)
 
-        learner.fit(self.new_master_train_features, self.master_long)
+        learner.fit(new_master_train_features, self.master_long)
 
-        long_train_preds = learner.predict(self.master_features)
+        long_train_preds = learner.predict(new_master_train_features)
+
+        # new shape
+        n, m = self.master_test_features.shape
 
         # predict train longitude by using new master features
-        new_master_test_features = np.hstack((self.master_features, lat_test_preds.reshape((n, 1))))
-        new_test_scaler = MinMaxScaler
+        new_master_test_features = np.hstack((self.master_test_features, lat_test_preds.reshape((n, 1))))
+        new_test_scaler = MinMaxScaler()
         new_test_scaler.fit(new_master_test_features)
         new_test_scaler.transform(new_master_test_features)
 
-        learner.fit(self.new_master_test_features, self.master_long)
-
-        long_test_preds = learner.predict(self.master_features)
+        long_test_preds = learner.predict(new_master_test_features)
 
         return lat_train_preds, long_train_preds, lat_test_preds, long_test_preds
 
@@ -184,6 +254,23 @@ class modelSelection(object):
             long_predicts = SVM.predict(self.master_test_features)
         else:
             long_predicts = SVM.predict(self.master_features)
+
+        return lat_predicts, long_predicts
+
+    def decisionTree(self, test):
+        dTree = DecisionTreeRegressor(max_depth = 5)
+
+        dTree.fit(self.master_features, self.master_lat)
+        if test:
+            lat_predicts = dTree.predict(self.master_test_features)
+        else:
+            lat_predicts = dTree.predict(self.master_features)
+
+        dTree.fit(self.master_features, self.master_long)
+        if test:
+            long_predicts = dTree.predict(self.master_test_features)
+        else:
+            long_predicts = dTree.predict(self.master_features)
 
         return lat_predicts, long_predicts
 
@@ -356,7 +443,6 @@ class modelSelection(object):
         print(gs.best_params_)
         print(gs.get_params())
 
-
         lat_test_preds = gs.predict(self.master_test_features)
 
         lat_train_preds = gs.predict(self.master_features)
@@ -370,24 +456,31 @@ class modelSelection(object):
         long_train_preds = gs.predict(self.master_features)
         return lat_train_preds, long_train_preds, lat_test_preds, long_test_preds
 
-        #Decision Tree
-    def decisionTree(self, test):
-        dTree = DecisionTreeRegressor(max_depth = 5)
+    def runGridSearch_random_forest(self):
 
-        dTree.fit(self.master_features, self.master_lat)
-        if test:
-            lat_predicts = dTree.predict(self.master_test_features)
-        else:
-            lat_predicts = dTree.predict(self.master_features)
+        params = [{'n_estimators': [10, 30, 50, 70, 90, 100], 'max_depth': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, None], 'n_jobs': [17]}]
 
-        dTree.fit(self.master_features, self.master_long)
-        if test:
-            long_predicts = dTree.predict(self.master_test_features)
-        else:
-            long_predicts = dTree.predict(self.master_features)
+        learner = RandomForestRegressor(n_jobs=17)
 
-        return lat_predicts, long_predicts
+        gs = GridSearchCV(learner, params, 'neg_mean_squared_error', cv=5, n_jobs = 15)
+        gs.fit(self.master_features, self.master_lat)
 
+        print("The best lat parameters found were: ")
+        print(gs.best_params_)
+        print(gs.get_params())
+
+        lat_test_preds = gs.predict(self.master_test_features)
+        lat_train_preds = gs.predict(self.master_features)
+
+        gs.fit(self.master_features, self.master_long)
+        print("the best long params for longitude were: ")
+        print(gs.best_params_)
+        print(gs.get_params())
+
+        long_test_preds = gs.predict(self.master_test_features)
+        long_train_preds = gs.predict(self.master_features)
+
+        return lat_train_preds, long_train_preds, lat_test_preds, long_test_preds
 
     def initializeValues(self):
 
