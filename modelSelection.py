@@ -30,29 +30,30 @@ class modelSelection(object):
         self.initializeValues()
         # Decision Tree
         # print("Regression Decision Tree")
-        # x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_dt()
+        # x_test_predicts, y_test_predicts = self.decisionTree(True)
 
         #Bagging
-        print("Bagging using decision tree")
-        x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.bagging()
+        # print("Bagging using decision tree")
+        # x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.bagging()
 
         # SVR
         # print("SVR")
         # x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_svr()
 
         # error
-        total_svr_error = self.total_MSE(x_train_predicts, self.master_lat, y_train_predicts, self.master_long)
+        # total_svr_error = self.total_MSE(x_train_predicts, self.master_lat, y_train_predicts, self.master_long)
 
-        # print("norm")
-        # x_predicts, y_predicts = self.SVM(False)
-        # self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
+
+        print("norm")
+        x_test_predicts, y_test_predicts = self.kNN_norm(True)
+        # self.total_MSE(x_train_predicts, self.master_lat, y_train_predicts, self.master_long)
 
         # print("advanced")
         # x_predicts, y_predicts = self.kNN_advanced()
         # self.total_MSE(x_predicts, self.master_lat, y_predicts, self.master_long)
 
 
-        new_file = open("./data/submission_bagging_dt_nolim.txt", "w")
+        new_file = open("./data/submission_knn9_norm.txt", "w")
 
 
         counter = 0
@@ -75,7 +76,7 @@ class modelSelection(object):
     def kNN_norm(self, test):
 
         # kNN
-        kNN = KNeighborsRegressor(n_neighbors=10, n_jobs= 2)
+        kNN = KNeighborsRegressor(n_neighbors=9, n_jobs= 2)
 
         kNN.fit(self.master_features, self.master_lat)
         if test:
@@ -129,7 +130,7 @@ class modelSelection(object):
         #SVC
     def SVM(self, test):
 
-        SVM = SVR(kernel = "rbf", max_iter = 10000)
+        SVM = SVR(kernel = "linear", max_iter = 1000)
 
         SVM.fit(self.master_features, self.master_lat)
         if test:
@@ -221,7 +222,7 @@ class modelSelection(object):
 
         #Decision Tree
     def decisionTree(self, test):
-        dTree = DecisionTreeRegressor()
+        dTree = DecisionTreeRegressor(max_depth = 5)
 
         dTree.fit(self.master_features, self.master_lat)
         if test:
@@ -238,7 +239,7 @@ class modelSelection(object):
         return lat_predicts, long_predicts
 
     def bagging(self):
-        learner = DecisionTreeRegressor(max_depth= 5)
+        learner = DecisionTreeRegressor(max_depth = 5)
         bag = BaggingRegressor(learner, n_jobs = 2)
         bag.fit(self.master_features, self.master_lat)
 

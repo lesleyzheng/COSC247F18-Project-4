@@ -23,8 +23,8 @@ def run_lin_reg(X_tr, y_tr, X_te):
     return train_preds
 
     # test predict
-    new_X_te = scaler.transform(X_te)
-    test_preds = learner.predict(new_X_te)
+    # new_X_te = scaler.transform(X_te)
+    # test_preds = learner.predict(new_X_te)
 
     # return test_preds
 
@@ -66,12 +66,12 @@ def get_target_array(target_dict):
     return np.array(target_list)
 
 def total_MSE(pred_x, targ_x, pred_y, targ_y):
+    location = pred_x + pred_y
+    pred_location = targ_x + targ_y
 
-    print(len(pred_x), len(targ_x), len(pred_y), len(targ_y))
-    location = pred_x+pred_y
-    pred_location = targ_x+targ_y
-    loss = (mean_squared_error(location, pred_location))**(1/2)
-    # print(f"Total MSE {loss}")
+    loss = (mean_squared_error(location, pred_location)) ** (1 / 2)
+
+    print("Total MSE " + str(loss))
 
 
 if __name__ == '__main__':
@@ -96,15 +96,15 @@ if __name__ == '__main__':
 
     total_MSE(test_preds_lat, target_lat_array, test_preds_long, target_long_array)
 
-    pickle_in4 = open("./data/posts_test_dict.pkl", "rb")
-    test_dict, desc4 = pickle.load(pickle_in4)
-
-    new_file = open("./data/submission_linreg.txt", "w")
-
-    counter = 0
-    new_file.write("Id,Lat,Lon")
-    for key in test_dict.keys():
-        string = "\n" + str(key) + "," + str(test_preds_lat[counter]) + "," + str(test_preds_long[counter])
-        new_file.write(string)
-        counter +=1
-    new_file.close()
+    # pickle_in4 = open("./data/posts_test_dict.pkl", "rb")
+    # test_dict, desc4 = pickle.load(pickle_in4)
+    #
+    # new_file = open("./data/submission_linreg_again.txt", "w")
+    #
+    # counter = 0
+    # new_file.write("Id,Lat,Lon")
+    # for key in test_dict.keys():
+    #     string = "\n" + str(key) + "," + str(test_preds_lat[counter]) + "," + str(test_preds_long[counter])
+    #     new_file.write(string)
+    #     counter +=1
+    # new_file.close()
