@@ -7,10 +7,13 @@ from sklearn.svm import SVR
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import mean_squared_error
 from sklearn.tree import DecisionTreeRegressor
+
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.ensemble import ExtraTreesRegressor
 from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.ensemble import BaggingRegressor
+
 
 class modelSelection(object):
 
@@ -44,6 +47,12 @@ class modelSelection(object):
         # print("Regression Decision Tree GS")
         # x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_dt()
 
+
+
+        #Bagging
+        print("Bagging using decision tree")
+        x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.bagging()
+
         # SVR Grid Search
         # print("SVR GS")
         # x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.runGridSearch_svr()
@@ -64,9 +73,11 @@ class modelSelection(object):
         # print("random forest regressor 5")
         # x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.random_forest_regressor()
 
+
         # extra random forest regressor
         # print("extra random forest regressor")
         # x_train_predicts, y_train_predicts, x_test_predicts, y_test_predicts = self.extra_tree_regressor()
+
 
         # gradient boosting
         # print("gradient boosting")
@@ -468,6 +479,7 @@ class modelSelection(object):
         long_train_preds = gs.predict(self.master_features)
         return lat_train_preds, long_train_preds, lat_test_preds, long_test_preds
 
+
     def runGridSearch_random_forest(self):
 
         params = [{'n_estimators': [10, 30, 50, 70, 90, 100], 'max_depth': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, None], 'n_jobs': [17]}]
@@ -476,6 +488,7 @@ class modelSelection(object):
 
         gs = GridSearchCV(learner, params, 'neg_mean_squared_error', cv=5, n_jobs = 15)
         gs.fit(self.master_features, self.master_lat)
+
 
         print("The best lat parameters found were: ")
         print(gs.best_params_)
@@ -493,6 +506,26 @@ class modelSelection(object):
         long_train_preds = gs.predict(self.master_features)
 
         return lat_train_preds, long_train_preds, lat_test_preds, long_test_preds
+
+    def bagging(self):
+        learner = DecisionTreeRegressor(max_depth= 5)
+        bag = BaggingRegressor(learner, n_jobs = 2)
+        bag.fit(self.master_features, self.master_lat)
+
+
+        lat_test_predicts = bag.predict(self.master_test_features)
+
+        lat_train_predicts = bag.predict(self.master_features)
+
+        bag.fit(self.master_features, self.master_long)
+
+        long_test_predicts = bag.predict(self.master_test_features)
+
+        long_train_predicts = bag.predict(self.master_features)
+
+        return lat_train_predicts, long_train_predicts, lat_test_predicts, long_test_predicts
+
+
 
     def initializeValues(self):
 
